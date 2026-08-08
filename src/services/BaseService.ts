@@ -1,0 +1,33 @@
+import { Model, QueryFilter, UpdateQuery } from "mongoose";
+
+export class BaseService<T extends Document> {
+  protected model: Model<T>;
+
+  constructor(model: Model<T>) {
+    this.model = model;
+  }
+
+  async create(data: Partial<T>): Promise<T> {
+    const record = new this.model(data);
+    return await record.save();
+  }
+
+  async getById(id: string): Promise<T | null> {
+    return await this.model.findById(id).exec();
+  }
+
+  async getAll(filter: QueryFilter<T> = {}): Promise<T[]> {
+    return await this.model.find(filter).exec();
+  }
+
+  async update(id: string, data: UpdateQuery<T>): Promise<T | null> {
+    return await this.model.findByIdAndUpdate(id, data, { 
+      new: true, 
+      runValidators: true 
+    }).exec();
+  }
+
+  async delete(id: string): Promise<T | null> {
+    return await this.model.findByIdAndDelete(id).exec();
+  }
+}
