@@ -1,5 +1,6 @@
 import { Schema } from "mongoose";
 import { IBaseEntity } from "../BaseModel";
+import { UserRole } from "../../enums/user/UserRoleEnum";
 
 export interface IUser extends IBaseEntity {
   userName: string;
@@ -7,6 +8,6 @@ export interface IUser extends IBaseEntity {
   email: string;
   mobileNumber?: string;
   teamId?: Schema.Types.ObjectId;
-  role: 'Admin' | 'Leader' | 'Member';
+  role: UserRole;
   isActive: boolean;
 }

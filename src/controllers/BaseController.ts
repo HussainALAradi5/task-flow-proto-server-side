@@ -1,34 +1,55 @@
-import { Model, QueryFilter, UpdateQuery } from "mongoose";
-import * as mongoose from "mongoose";
+import { Request, Response } from 'express';
+import { catchAsync } from '../utilities/catchAsync';
+import { BaseService } from '../services/BaseService';
+import * as mongoose from 'mongoose';
 
-export class BaseService<T extends mongoose.Document> {
-  protected model: Model<T>;
+export class BaseController<T extends mongoose.Document> {
+  protected service: BaseService<T>;
 
-  constructor(model: Model<T>) {
-    this.model = model;
+  constructor(service: BaseService<T>) {
+    this.service = service;
   }
 
-  async create(data: Partial<T>): Promise<T> {
-    const record = new this.model(data);
-    return await record.save();
-  }
+  create = catchAsync(async (req: Request, res: Response): Promise<void> => {
+    const item = await this.service.create(req.body);
+    res.status(201).json({ status: 'success', data: item });
+  });
 
-  async getById(id: string): Promise<T | null> {
-    return await this.model.findById(id).exec();
-  }
+  getAll = catchAsync(async (req: Request, res: Response): Promise<void> => {
+    const items = await this.service.getAll(req.query);
+    res.status(200).json({ status: 'success', data: items });
+  });
 
-  async getAll(filter: QueryFilter<T> = {}): Promise<T[]> {
-    return await this.model.find(filter).exec();
-  }
+  getById = catchAsync(async (req: Request, res: Response): Promise<void> => {
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const item = await this.service.getById(id);
+    if (!item) {
+      res.status(404).json({ status: 'error', message: 'Resource not found' });
+      return;
+    }
+    res.status(200).json({ status: 'success', data: item });
+  });
 
-  async update(id: string, data: UpdateQuery<T>): Promise<T | null> {
-    return await this.model.findByIdAndUpdate(id, data, { 
-      new: true, 
-      runValidators: true 
-    }).exec();
-  }
+  update = catchAsync(async (req: Request, res: Response): Promise<void> => {
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const item = await this.service.update(id, req.body);
+    if (!item) {
+      res.status(404).json({ status: 'error', message: 'Resource not found' });
+      return;
+    }
+    res.status(200).json({ status: 'success', data: item });
+  });
 
-  async delete(id: string): Promise<T | null> {
-    return await this.model.findByIdAndDelete(id).exec();
-  }
+  delete = catchAsync(async (req: Request, res: Response): Promise<void> => {
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    // Calling the softDelete function from the service layer
+    const item = await this.service.softDelete(id);
+    if (!item) {
+      res.status(404).json({ status: 'error', message: 'Resource not found' });
+      return;
+    }
+    res
+      .status(200)
+      .json({ status: 'success', message: 'Resource deactivated successfully' });
+  });
 }

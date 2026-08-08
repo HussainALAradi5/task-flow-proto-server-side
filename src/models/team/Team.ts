@@ -1,4 +1,4 @@
-import { Schema, model } from 'mongoose';
+import mongoose, { HydratedDocument, Schema, model } from 'mongoose';
 import { ITeam } from '../../interface/team/Team';
 import { baseSchemaFields } from '../BaseModel';
 
@@ -13,4 +13,4 @@ const teamSchema = new Schema<ITeam>(
   { timestamps: true }
 );
 
-export const Team = model<ITeam>('Team', teamSchema);
+export const Team = model<ITeam>("Team", teamSchema);

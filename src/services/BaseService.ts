@@ -1,6 +1,7 @@
 import { Model, QueryFilter, UpdateQuery } from "mongoose";
+import * as mongoose from "mongoose";
 
-export class BaseService<T extends Document> {
+export class BaseService<T extends mongoose.Document> {
   protected model: Model<T>;
 
   constructor(model: Model<T>) {
@@ -21,13 +22,20 @@ export class BaseService<T extends Document> {
   }
 
   async update(id: string, data: UpdateQuery<T>): Promise<T | null> {
-    return await this.model.findByIdAndUpdate(id, data, { 
-      new: true, 
-      runValidators: true 
-    }).exec();
+    return await this.model
+      .findByIdAndUpdate(id, data, {
+        new: true,
+        runValidators: true,
+      })
+      .exec();
   }
 
-  async delete(id: string): Promise<T | null> {
-    return await this.model.findByIdAndDelete(id).exec();
+  // Named softDelete so the controller can invoke it cleanly
+  async softDelete(id: string): Promise<T | null> {
+    return await this.model
+      .findByIdAndUpdate(id, { isActive: false } as unknown as UpdateQuery<T>, {
+        new: true,
+      })
+      .exec();
   }
 }

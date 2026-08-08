@@ -1,4 +1,4 @@
-import { Schema, model } from "mongoose";
+import mongoose, { HydratedDocument, Schema, model } from "mongoose";
 import { baseSchemaFields } from "../BaseModel";
 import { IUser } from "../../interface/user/User";
 import { createMongooseEnum } from "../../utilities/enumUtils";
@@ -21,4 +21,4 @@ const userSchema = new Schema<IUser>(
   { timestamps: true },
 );
 
-export const User = model<IUser>("User", userSchema);
+export const User = model<IUser, mongoose.Model<HydratedDocument<IUser>>>("User", userSchema);
