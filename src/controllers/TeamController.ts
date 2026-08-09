@@ -1,6 +1,6 @@
-import { BaseController } from './BaseController';
-import { ITeam } from '../interface/team/Team';
-import { TeamService } from '../services/team/TeamService';
+import { ITeam } from "../interface/team/Team";
+import { TeamService } from "../services";
+import { BaseController } from "./BaseController";
 
 class TeamControllerClass extends BaseController<ITeam> {
   constructor() {
