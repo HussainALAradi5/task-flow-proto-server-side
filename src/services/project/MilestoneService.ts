@@ -14,5 +14,13 @@ class MilestoneServiceClass extends BaseService<IMilestone> {
     };
     return await this.getAll(filter);
   }
+
+  async getMyMilestonesByProject(projectId: string, userId: string): Promise<IMilestone[]> {
+    const filter: QueryFilter<IMilestone> = { 
+      projectId: new Types.ObjectId(projectId) as unknown as IMilestone['projectId'],
+      createdBy: new Types.ObjectId(userId) as unknown as IMilestone['createdBy']
+    };
+    return await this.getAll(filter);
+  }
 }
 export const MilestoneService = new MilestoneServiceClass();
