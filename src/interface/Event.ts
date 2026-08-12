@@ -1,6 +1,6 @@
 import { Schema } from "mongoose";
 import { IBaseEntity } from "./BaseModel";
-import { EntityType } from "../enums/EntityTypeEnum";
+import { EntityType } from '../enums/EntityType';
 
 export interface IEvent extends IBaseEntity {
   title: string;

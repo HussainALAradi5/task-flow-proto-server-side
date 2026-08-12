@@ -1,7 +1,9 @@
 import { IUser } from '../../interface/user/User';
 import { User } from '../../models/user/User';
 import { BaseService } from '../BaseService';
-import { UserRole } from '../../enums/user/UserRoleEnum';
+import { EventService } from '../EventService';
+import { EntityType } from '../../enums/EntityType';
+import { UserRole } from '../../enums/user/UserRole';
 import bcrypt from 'bcrypt';
 
 class UserServiceClass extends BaseService<IUser> {
@@ -9,7 +11,6 @@ class UserServiceClass extends BaseService<IUser> {
     super(User);
   }
 
-  // Override create to hash passwords securely and assign default MEMBER role
   async create(data: Partial<IUser>): Promise<IUser> {
     let hashedPassword = data.password;
     if (hashedPassword) {
@@ -23,30 +24,39 @@ class UserServiceClass extends BaseService<IUser> {
       role: data.role || UserRole.MEMBER,
     };
 
-    return await super.create(userData);
-  }
-
-  // Explicit authentication lookup function
-  async authenticate(email: string, passwordPlain: string): Promise<IUser | null> {
-    const user = await this.model.findOne({ email }).select('+password').exec();
-    if (!user || !user.password) {
-      return null;
-    }
-
-    const isMatch = await bcrypt.compare(passwordPlain, user.password);
-    if (!isMatch) {
-      return null;
-    }
-
+    const user = await super.create(userData);
+    await EventService.logEvent('User created', EntityType.USER, user.id, `New user: ${user.userName}`, data.createdBy?.toString());
     return user;
   }
 
-  // Role Assignment - Zero 'any' types, natively matches Mongoose UpdateQuery
-  async assignRole(userId: string, role: UserRole): Promise<IUser | null> {
-    return await this.update(userId, { $set: { role } });
+  async update(id: string, data: Partial<IUser>): Promise<IUser | null> {
+    const updated = await super.update(id, data);
+    if (updated) {
+      await EventService.logEvent('User updated', EntityType.USER, id, 'User profile updated', id);
+    }
+    return updated;
   }
 
-  // Promote to Leader when creating a project context
+  async authenticate(email: string, passwordPlain: string): Promise<IUser | null> {
+    const user = await this.model.findOne({ email }).select('+password').exec();
+    if (!user || !user.password) return null;
+
+    const isMatch = await bcrypt.compare(passwordPlain, user.password);
+    return isMatch ? user : null;
+  }
+
+  async findByEmailOrUsername(email: string, userName: string): Promise<IUser | null> {
+    return await this.model.findOne({ $or: [{ email }, { userName }] }).exec();
+  }
+
+  async assignRole(userId: string, role: UserRole): Promise<IUser | null> {
+    const updated = await super.update(userId, { role } as any);
+    if (updated) {
+      await EventService.logEvent('User role updated', EntityType.USER, userId, `Role changed to ${role}`, userId);
+    }
+    return updated;
+  }
+
   async promoteToLeaderForNewProject(userId: string): Promise<IUser | null> {
     const user = await this.getById(userId);
     if (user && user.role === UserRole.MEMBER) {

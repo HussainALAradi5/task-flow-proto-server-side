@@ -1,44 +1,59 @@
 import { ITask } from '../../interface/project/Task';
 import { Task } from '../../models/project/Task';
 import { BaseService } from '../BaseService';
-import { Types, QueryFilter } from 'mongoose';
+import { EventService } from '../EventService';
+import { EntityType } from '../../enums/EntityType';
+import { toObjectId } from '../../utilities/helpers';
+import { QueryFilter } from 'mongoose';
 
 class TaskServiceClass extends BaseService<ITask> {
   constructor() {
     super(Task);
   }
 
-  // Admin fetch: Retrieve all tasks regardless of creator
-  async getTasksByProject(projectId: string): Promise<ITask[]> {
-    const filter: QueryFilter<ITask> = { 
-      projectId: new Types.ObjectId(projectId) as unknown as ITask['projectId'] 
-    };
-    return await this.getAll(filter);
+  async create(data: Partial<ITask>): Promise<ITask> {
+    const task = await super.create(data);
+    await EventService.logEvent('Task created', EntityType.TASK, task.id, `New task: ${task.title}`, data.createdBy?.toString());
+    return task;
   }
 
-  // Isolated fetch: Retrieve only tasks created by the specific user
-  async getMyTasksByProject(projectId: string, userId: string): Promise<ITask[]> {
-    const filter: QueryFilter<ITask> = { 
-      projectId: new Types.ObjectId(projectId) as unknown as ITask['projectId'],
-      createdBy: new Types.ObjectId(userId) as unknown as ITask['createdBy']
-    };
-    return await this.getAll(filter);
+  async update(id: string, data: Partial<ITask>): Promise<ITask | null> {
+    const updated = await super.update(id, data);
+    if (updated) {
+      await EventService.logEvent('Task updated', EntityType.TASK, id, 'Task details updated', id);
+    }
+    return updated;
   }
 
-  // Admin fetch: Retrieve all tasks for a milestone regardless of creator
-  async getTasksByMilestone(milestoneId: string): Promise<ITask[]> {
-    const filter: QueryFilter<ITask> = { 
-      milestoneId: new Types.ObjectId(milestoneId) as unknown as ITask['milestoneId'] 
-    };
-    return await this.getAll(filter);
+  async softDelete(id: string): Promise<ITask | null> {
+    const deleted = await super.softDelete(id);
+    if (deleted) {
+      await EventService.logEvent('Task deactivated', EntityType.TASK, id, 'Task was deactivated', id);
+    }
+    return deleted;
   }
 
-  async getMyTasksByMilestone(milestoneId: string, userId: string): Promise<ITask[]> {
-    const filter: QueryFilter<ITask> = { 
-      milestoneId: new Types.ObjectId(milestoneId) as unknown as ITask['milestoneId'],
-      createdBy: new Types.ObjectId(userId) as unknown as ITask['createdBy']
+  buildProjectFilter(projectId: string): QueryFilter<ITask> {
+    return { projectId: toObjectId(projectId) as unknown as ITask['projectId'] };
+  }
+
+  buildProjectUserFilter(projectId: string, userId: string): QueryFilter<ITask> {
+    return {
+      projectId: toObjectId(projectId) as unknown as ITask['projectId'],
+      createdBy: toObjectId(userId) as unknown as ITask['createdBy'],
     };
-    return await this.getAll(filter);
+  }
+
+  buildMilestoneFilter(milestoneId: string): QueryFilter<ITask> {
+    return { milestoneId: toObjectId(milestoneId) as unknown as ITask['milestoneId'] };
+  }
+
+  buildMilestoneUserFilter(milestoneId: string, userId: string): QueryFilter<ITask> {
+    return {
+      milestoneId: toObjectId(milestoneId) as unknown as ITask['milestoneId'],
+      createdBy: toObjectId(userId) as unknown as ITask['createdBy'],
+    };
   }
 }
+
 export const TaskService = new TaskServiceClass();

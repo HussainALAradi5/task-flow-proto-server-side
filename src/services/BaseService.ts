@@ -1,5 +1,7 @@
-import { Model, QueryFilter, UpdateQuery } from "mongoose";
-import * as mongoose from "mongoose";
+import { Model, QueryFilter, UpdateQuery } from 'mongoose';
+import * as mongoose from 'mongoose';
+import { PaginatedResult } from '../interface/Pagination';
+import { PaginationParams } from '../utilities/pagination';
 
 export class BaseService<T extends mongoose.Document> {
   protected model: Model<T>;
@@ -21,21 +23,35 @@ export class BaseService<T extends mongoose.Document> {
     return await this.model.find(filter).exec();
   }
 
+  async getAllPaginated(
+    filter: QueryFilter<T> = {},
+    params: PaginationParams,
+  ): Promise<PaginatedResult<T>> {
+    const [data, total] = await Promise.all([
+      this.model.find(filter).skip(params.skip).limit(params.limit).exec(),
+      this.model.countDocuments(filter).exec(),
+    ]);
+
+    return {
+      data,
+      pagination: {
+        page: params.page,
+        limit: params.limit,
+        total,
+        totalPages: Math.ceil(total / params.limit),
+      },
+    };
+  }
+
   async update(id: string, data: UpdateQuery<T>): Promise<T | null> {
     return await this.model
-      .findByIdAndUpdate(id, data, {
-        new: true,
-        runValidators: true,
-      })
+      .findByIdAndUpdate(id, data, { new: true, runValidators: true })
       .exec();
   }
 
-  // Named softDelete so the controller can invoke it cleanly
   async softDelete(id: string): Promise<T | null> {
     return await this.model
-      .findByIdAndUpdate(id, { isActive: false } as unknown as UpdateQuery<T>, {
-        new: true,
-      })
+      .findByIdAndUpdate(id, { isActive: false } as unknown as UpdateQuery<T>, { new: true })
       .exec();
   }
 }

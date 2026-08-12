@@ -1,7 +1,7 @@
 import { Schema } from "mongoose";
 import { IBaseEntity } from "../BaseModel";
 import { GenericStatus } from "../../enums/GenericStatus";
-import { TaskPriority } from "../../enums/project/TaskEnum";
+import { TaskPriority } from '../../enums/project/TaskPriority';
 
 export interface ITask extends IBaseEntity {
   title: string;

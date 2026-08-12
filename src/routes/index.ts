@@ -9,10 +9,10 @@ import teamRoutes from './team/teamRoutes';
 
 const router = Router();
 
-// Public routes (Authentication, Login, Signup)
+// Public routes (signup, login)
 router.use('/users', userRoutes);
 
-// Global Authentication Gate: Everything mounted below this line is automatically protected
+// Protected routes - everything below requires authentication
 router.use(protect);
 
 router.use('/projects', projectRoutes);

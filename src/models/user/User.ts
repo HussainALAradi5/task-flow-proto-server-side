@@ -2,7 +2,7 @@ import mongoose, { HydratedDocument, Schema, model } from "mongoose";
 import { baseSchemaFields } from "../BaseModel";
 import { IUser } from "../../interface/user/User";
 import { createMongooseEnum } from "../../utilities/enumUtils";
-import { UserRole } from "../../enums/user/UserRoleEnum";
+import { UserRole } from '../../enums/user/UserRole';
 
 const userSchema = new Schema<IUser>(
   {

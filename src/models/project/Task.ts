@@ -2,7 +2,7 @@ import { model, Schema } from "mongoose";
 import { ITask } from "../../interface/project/Task";
 import { baseSchemaFields } from "../BaseModel";
 import { GenericStatus } from "../../enums/GenericStatus";
-import { TaskPriority } from "../../enums/project/TaskEnum";
+import { TaskPriority } from '../../enums/project/TaskPriority';
 
 const taskSchema = new Schema<ITask>(
   {

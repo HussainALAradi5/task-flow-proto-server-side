@@ -12,11 +12,13 @@ export class BaseRoute<TController extends BaseController<any>> {
   }
 
   protected initStandardRoutes(): void {
-    this.router.route('/')
+    this.router
+      .route('/')
       .post(this.controller.create)
       .get(this.controller.getAll);
 
-    this.router.route('/:id')
+    this.router
+      .route('/:id')
       .get(this.controller.getById)
       .patch(this.controller.update)
       .delete(this.controller.delete);

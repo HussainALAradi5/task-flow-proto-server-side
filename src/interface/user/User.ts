@@ -1,6 +1,6 @@
 import { Schema } from "mongoose";
 import { IBaseEntity } from "../BaseModel";
-import { UserRole } from "../../enums/user/UserRoleEnum";
+import { UserRole } from '../../enums/user/UserRole';
 
 export interface IUser extends IBaseEntity {
   userName: string;
