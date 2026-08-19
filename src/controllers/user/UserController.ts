@@ -41,7 +41,40 @@ class UserControllerClass extends BaseController<IUser> {
   });
 
   getProfile = catchAsync(async (req: Request, res: Response): Promise<void> => {
-    res.status(200).json({ status: 'success', data: req.user });
+    const user = await UserService.getById(req.user!.id);
+    if (!user) {
+      res.status(404).json({ status: 'error', message: 'User not found' });
+      return;
+    }
+    res.status(200).json({ status: 'success', data: sanitizeUser(user) });
+  });
+
+  updateProfile = catchAsync(async (req: Request, res: Response): Promise<void> => {
+    const { userName, email, mobileNumber } = req.body;
+
+    if (email || userName) {
+      const existing = await UserService.findByEmailOrUsername(
+        email || req.user!.email,
+        userName || req.user!.userName,
+      );
+      if (existing && existing.id !== req.user!.id) {
+        res.status(409).json({
+          status: 'error',
+          message: existing.email === (email || req.user!.email)
+            ? 'Email already in use'
+            : 'Username already taken',
+        });
+        return;
+      }
+    }
+
+    const updated = await UserService.update(req.user!.id, { userName, email, mobileNumber });
+    if (!updated) {
+      res.status(404).json({ status: 'error', message: 'User not found' });
+      return;
+    }
+
+    res.status(200).json({ status: 'success', data: sanitizeUser(updated) });
   });
 
   updateRole = catchAsync(async (req: Request, res: Response): Promise<void> => {

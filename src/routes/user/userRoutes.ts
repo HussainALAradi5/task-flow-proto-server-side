@@ -1,24 +1,21 @@
+import { Router } from 'express';
 import { UserController } from '../../controllers/user/UserController';
-import { BaseRoute } from '../BaseRoute';
 import { restrictTo } from '../../middlewares/authMiddleware';
 import { validateRequest } from '../../utilities/validateRequest';
-import { signupSchema, loginSchema, updateRoleSchema } from '../../validations';
+import { updateUserSchema, updateRoleSchema } from '../../validations';
 
-class UserRouteClass extends BaseRoute<typeof UserController> {
-  constructor() {
-    super(UserController);
+const profileRouter = Router();
+const userCRUDRouter = Router();
 
-    this.router.post('/signup', validateRequest(signupSchema), UserController.signup);
-    this.router.post('/login', validateRequest(loginSchema), UserController.login);
+// Profile routes (any authenticated user)
+profileRouter.get('/profile', UserController.getProfile);
+profileRouter.patch('/profile', validateRequest(updateUserSchema), UserController.updateProfile);
 
-    this.router.get('/profile', UserController.getProfile);
-    this.router.patch(
-      '/:id/role',
-      restrictTo('Admin'),
-      validateRequest(updateRoleSchema),
-      UserController.updateRole,
-    );
-  }
-}
+// Admin-only user management
+userCRUDRouter.get('/', restrictTo('Admin'), UserController.getAll);
+userCRUDRouter.get('/:id', restrictTo('Admin'), UserController.getById);
+userCRUDRouter.patch('/:id', restrictTo('Admin'), validateRequest(updateUserSchema), UserController.update);
+userCRUDRouter.delete('/:id', restrictTo('Admin'), UserController.delete);
+userCRUDRouter.patch('/:id/role', restrictTo('Admin'), validateRequest(updateRoleSchema), UserController.updateRole);
 
-export default new UserRouteClass().router;
+export { profileRouter as profile, userCRUDRouter as userCRUD };
