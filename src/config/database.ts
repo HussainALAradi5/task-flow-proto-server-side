@@ -8,12 +8,10 @@ export const connectDatabase = async (): Promise<void> => {
     }
 
     console.log('Connecting to MongoDB...');
-    console.log('URI starts with:', config.mongoUri.substring(0, 30) + '...');
-
     await mongoose.connect(config.mongoUri);
     console.log('MongoDB Connected Successfully');
   } catch (error) {
     console.error('Database connection error:', error);
-    process.exit(1);
+    console.error('Server will start without database. API calls will fail until DB is connected.');
   }
 };
