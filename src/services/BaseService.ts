@@ -28,6 +28,10 @@ export class BaseService<T extends mongoose.Document> {
     return await this.model.findById(id).exec();
   }
 
+  async getByCode(code: string): Promise<T | null> {
+    return await this.model.findOne({ code }).exec();
+  }
+
   async getAll(filter: QueryFilter<T> = {}): Promise<T[]> {
     return await this.model.find(filter).exec();
   }
