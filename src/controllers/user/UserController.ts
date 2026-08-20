@@ -92,7 +92,7 @@ class UserControllerClass extends BaseController<IUser> {
       return;
     }
 
-    res.status(200).json({ status: 'success', data: updatedUser });
+    res.status(200).json({ status: 'success', data: sanitizeUser(updatedUser) });
   });
 }
 

@@ -5,10 +5,31 @@ import { EventService } from '../EventService';
 import { EntityType } from '../../enums/EntityType';
 import { toObjectId } from '../../utilities/helpers';
 import { QueryFilter } from 'mongoose';
+import { PaginatedResult } from '../../interface/Pagination';
+import { PaginationParams } from '../../utilities/pagination';
+
+const MILESTONE_POPULATE = {
+  path: 'createdBy updatedBy',
+  select: 'userName email',
+  model: 'User',
+};
 
 class MilestoneServiceClass extends BaseService<IMilestone> {
   constructor() {
     super(Milestone);
+  }
+
+  override async getAllPaginated(
+    filter: QueryFilter<IMilestone> = {},
+    params: PaginationParams,
+    search?: string,
+    searchFields?: string[],
+    exactMatch?: boolean,
+    includeInactive?: boolean,
+  ): Promise<PaginatedResult<IMilestone>> {
+    const result = await super.getAllPaginated(filter, params, search, searchFields, exactMatch, includeInactive);
+    const populated = await Milestone.populate(result.data, MILESTONE_POPULATE);
+    return { ...result, data: populated };
   }
 
   async create(data: Partial<IMilestone>): Promise<IMilestone> {

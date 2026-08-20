@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import { CommentController } from '../../controllers/project/CommentController';
-import { restrictTo } from '../../middlewares/authMiddleware';
 import { validateRequest } from '../../utilities/validateRequest';
 import { createCommentSchema, updateCommentSchema } from '../../validations';
 

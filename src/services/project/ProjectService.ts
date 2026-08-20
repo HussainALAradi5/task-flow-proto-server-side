@@ -4,10 +4,32 @@ import { BaseService } from '../BaseService';
 import { UserService } from '../user/UserService';
 import { EventService } from '../EventService';
 import { EntityType } from '../../enums/EntityType';
+import { PaginatedResult } from '../../interface/Pagination';
+import { PaginationParams } from '../../utilities/pagination';
+import { QueryFilter } from 'mongoose';
+
+const PROJECT_POPULATE = {
+  path: 'createdBy updatedBy members',
+  select: 'userName email',
+  model: 'User',
+};
 
 class ProjectServiceClass extends BaseService<IProject> {
   constructor() {
     super(Project);
+  }
+
+  override async getAllPaginated(
+    filter: QueryFilter<IProject> = {},
+    params: PaginationParams,
+    search?: string,
+    searchFields?: string[],
+    exactMatch?: boolean,
+    includeInactive?: boolean,
+  ): Promise<PaginatedResult<IProject>> {
+    const result = await super.getAllPaginated(filter, params, search, searchFields, exactMatch, includeInactive);
+    const populated = await Project.populate(result.data, PROJECT_POPULATE);
+    return { ...result, data: populated };
   }
 
   async createProject(data: Partial<IProject>): Promise<IProject> {
