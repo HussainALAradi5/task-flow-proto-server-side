@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import eventRoutes from './eventRoutes';
+import mediaRoutes from './mediaRoutes';
 import { protect } from '../middlewares/authMiddleware';
 import { signup, login } from './user/authRoutes';
 import { profile, userCRUD } from './user/userRoutes';
@@ -24,5 +25,6 @@ router.use('/tasks', taskRoutes);
 router.use('/comments', commentRoutes);
 router.use('/teams', teamRoutes);
 router.use('/events', eventRoutes);
+router.use('/media', mediaRoutes);
 
 export default router;

@@ -1,7 +1,12 @@
 import { Model, QueryFilter, UpdateQuery } from 'mongoose';
 import * as mongoose from 'mongoose';
+import * as crypto from 'crypto';
 import { PaginatedResult } from '../interface/Pagination';
 import { PaginationParams } from '../utilities/pagination';
+
+function generateCode(): string {
+  return crypto.randomBytes(5).toString('hex');
+}
 
 export class BaseService<T extends mongoose.Document> {
   protected model: Model<T>;
@@ -11,7 +16,11 @@ export class BaseService<T extends mongoose.Document> {
   }
 
   async create(data: Partial<T>): Promise<T> {
-    const record = new this.model(data);
+    const payload = {
+      ...data,
+      code: (data as any).code || generateCode(),
+    };
+    const record = new this.model(payload);
     return await record.save();
   }
 
