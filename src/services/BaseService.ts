@@ -8,6 +8,14 @@ function generateCode(): string {
   return crypto.randomBytes(5).toString('hex');
 }
 
+function generateSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+    + '-' + crypto.randomBytes(3).toString('hex');
+}
+
 export class BaseService<T extends mongoose.Document> {
   protected model: Model<T>;
 
@@ -16,10 +24,9 @@ export class BaseService<T extends mongoose.Document> {
   }
 
   async create(data: Partial<T>): Promise<T> {
-    const payload = {
-      ...data,
-      code: (data as any).code || generateCode(),
-    };
+    const code = generateCode();
+    const slug = (data as Record<string, unknown>).slug as string || generateSlug((data as Record<string, unknown>).name as string || code);
+    const payload = { ...data, code, slug };
     const record = new this.model(payload);
     return await record.save();
   }
@@ -30,6 +37,10 @@ export class BaseService<T extends mongoose.Document> {
 
   async getByCode(code: string): Promise<T | null> {
     return await this.model.findOne({ code }).exec();
+  }
+
+  async getBySlug(slug: string): Promise<T | null> {
+    return await this.model.findOne({ slug }).exec();
   }
 
   async getAll(filter: QueryFilter<T> = {}): Promise<T[]> {
