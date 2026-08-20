@@ -29,11 +29,11 @@ class UserControllerClass extends BaseController<IUser> {
   });
 
   login = catchAsync(async (req: Request, res: Response): Promise<void> => {
-    const { email, password } = req.body;
-    const user = await UserService.authenticate(email, password);
+    const { identifier, password } = req.body;
+    const user = await UserService.authenticate(identifier, password);
 
     if (!user) {
-      res.status(401).json({ status: 'error', message: 'Invalid email or password' });
+      res.status(401).json({ status: 'error', message: 'Invalid credentials' });
       return;
     }
 

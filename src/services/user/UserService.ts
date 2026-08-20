@@ -37,8 +37,10 @@ class UserServiceClass extends BaseService<IUser> {
     return updated;
   }
 
-  async authenticate(email: string, passwordPlain: string): Promise<IUser | null> {
-    const user = await this.model.findOne({ email }).select('+password').exec();
+  async authenticate(identifier: string, passwordPlain: string): Promise<IUser | null> {
+    const user = await this.model.findOne({
+      $or: [{ email: identifier }, { userName: identifier }, { mobileNumber: identifier }],
+    }).select('+password').exec();
     if (!user || !user.password) return null;
 
     const isMatch = await bcrypt.compare(passwordPlain, user.password);
@@ -50,7 +52,7 @@ class UserServiceClass extends BaseService<IUser> {
   }
 
   async assignRole(userId: string, role: UserRole): Promise<IUser | null> {
-    const updated = await super.update(userId, { role } as any);
+    const updated = await this.model.findByIdAndUpdate(userId, { role }, { new: true }).exec();
     if (updated) {
       await EventService.logEvent('User role updated', EntityType.USER, userId, `Role changed to ${role}`, userId);
     }

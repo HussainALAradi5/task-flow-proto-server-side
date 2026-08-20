@@ -10,7 +10,7 @@ const userSchema = new Schema<IUser>(
     userName: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     email: { type: String, required: true, unique: true },
-    mobileNumber: { type: String, default: "" },
+    mobileNumber: { type: String, unique: true, sparse: true, default: "" },
     teamId: { type: Schema.Types.ObjectId, ref: "Team", default: null },
 
     // Using the utility for the role field
