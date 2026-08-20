@@ -8,12 +8,14 @@ function generateCode(): string {
   return crypto.randomBytes(5).toString('hex');
 }
 
-function generateSlug(name: string): string {
-  return name
+function generateSlug(title: string): string {
+  const base = title
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
-    + '-' + crypto.randomBytes(3).toString('hex');
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/[\s-]+/g, '-')
+    .replace(/^-|-$/g, '');
+  return base + '-' + crypto.randomBytes(3).toString('hex');
 }
 
 export class BaseService<T extends mongoose.Document> {
@@ -50,10 +52,19 @@ export class BaseService<T extends mongoose.Document> {
   async getAllPaginated(
     filter: QueryFilter<T> = {},
     params: PaginationParams,
+    search?: string,
+    searchFields: string[] = ['title', 'name', 'description'],
   ): Promise<PaginatedResult<T>> {
+    const query: Record<string, unknown> = { ...filter, isActive: { $ne: false } };
+
+    if (search && searchFields.length > 0) {
+      const searchRegex = new RegExp(search, 'i');
+      query['$or'] = searchFields.map((field) => ({ [field]: searchRegex }));
+    }
+
     const [data, total] = await Promise.all([
-      this.model.find(filter).skip(params.skip).limit(params.limit).exec(),
-      this.model.countDocuments(filter).exec(),
+      this.model.find(query as QueryFilter<T>).skip(params.skip).limit(params.limit).exec(),
+      this.model.countDocuments(query as QueryFilter<T>).exec(),
     ]);
 
     return {
