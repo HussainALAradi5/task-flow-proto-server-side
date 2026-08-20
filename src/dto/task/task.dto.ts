@@ -12,6 +12,7 @@ export interface CreateTaskDto {
   startDate?: string;
   targetDate?: string;
   endDate?: string;
+  deliveredDate?: string;
 }
 
 export interface UpdateTaskDto {
@@ -24,4 +25,5 @@ export interface UpdateTaskDto {
   startDate?: string;
   targetDate?: string;
   endDate?: string;
+  deliveredDate?: string;
 }

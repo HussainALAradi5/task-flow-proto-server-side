@@ -15,6 +15,7 @@ export interface ITask extends IBaseEntity {
   startDate?: Date;
   targetDate?: Date;
   endDate?: Date;
+  deliveredDate?: Date;
   lastReviewedBy?: Schema.Types.ObjectId;
   lastReviewedAt?: Date;
 }

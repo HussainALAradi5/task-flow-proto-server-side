@@ -14,6 +14,7 @@ export const createTaskSchema = z.object({
     startDate: z.string().optional(),
     targetDate: z.string().optional(),
     endDate: z.string().optional(),
+    deliveredDate: z.string().optional(),
   }),
 });
 
@@ -28,6 +29,7 @@ export const updateTaskSchema = z.object({
     startDate: z.string().optional(),
     targetDate: z.string().optional(),
     endDate: z.string().optional(),
+    deliveredDate: z.string().optional(),
   }),
   params: z.object({
     id: z.string(),

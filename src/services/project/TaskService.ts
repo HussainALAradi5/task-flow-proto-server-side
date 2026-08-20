@@ -3,8 +3,10 @@ import { Task } from '../../models/project/Task';
 import { BaseService } from '../BaseService';
 import { EventService } from '../EventService';
 import { EntityType } from '../../enums/EntityType';
-import { toObjectId } from '../../utilities/helpers';
+import { toObjectId, USER_POPULATE } from '../../utilities/helpers';
 import { QueryFilter } from 'mongoose';
+import { PaginatedResult } from '../../interface/Pagination';
+import { PaginationParams } from '../../utilities/pagination';
 
 class TaskServiceClass extends BaseService<ITask> {
   constructor() {
@@ -41,6 +43,18 @@ class TaskServiceClass extends BaseService<ITask> {
       await EventService.logEvent('Task deactivated', EntityType.TASK, id, 'Task was deactivated', id);
     }
     return deleted;
+  }
+
+  override async getAllPaginated(
+    filter: QueryFilter<ITask> = {},
+    params: PaginationParams,
+    search?: string,
+    searchFields?: string[],
+    exactMatch?: boolean,
+  ): Promise<PaginatedResult<ITask>> {
+    const result = await super.getAllPaginated(filter, params, search, searchFields, exactMatch);
+    const populated = await Task.populate(result.data, USER_POPULATE);
+    return { ...result, data: populated };
   }
 
   buildProjectFilter(projectId: string): QueryFilter<ITask> {

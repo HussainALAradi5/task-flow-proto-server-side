@@ -30,6 +30,7 @@ const taskSchema = new Schema<ITask>(
     startDate: { type: Date, default: null },
     targetDate: { type: Date, default: null },
     endDate: { type: Date, default: null },
+    deliveredDate: { type: Date, default: null },
     lastReviewedBy: { type: Schema.Types.ObjectId, ref: "User", default: null },
     lastReviewedAt: { type: Date, default: null },
   },

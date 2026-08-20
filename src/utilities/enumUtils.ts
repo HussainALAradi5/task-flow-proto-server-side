@@ -8,8 +8,8 @@
 export const createMongooseEnum = <T extends object>(
   enumObj: T, 
   defaultValue?: T[keyof T]
-) => {
-  const config: { type: StringConstructor; enum: string[]; default?: any } = {
+): Record<string, unknown> => {
+  const config: Record<string, unknown> = {
     type: String,
     enum: Object.values(enumObj) as string[],
   };
