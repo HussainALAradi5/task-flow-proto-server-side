@@ -47,7 +47,8 @@ class TaskControllerClass extends BaseController<ITask> {
       : TaskService.buildProjectUserFilter(projectId, userId);
 
     const pagination = getPaginationParams(req);
-    const result = await TaskService.getAllPaginated(filter, pagination);
+    const includeInactive = req.query.includeInactive === 'true';
+    const result = await TaskService.getAllPaginated(filter, pagination, undefined, undefined, undefined, includeInactive);
     res.status(200).json({ status: 'success', ...result });
   });
 
@@ -59,7 +60,8 @@ class TaskControllerClass extends BaseController<ITask> {
       : TaskService.buildMilestoneUserFilter(milestoneId, userId);
 
     const pagination = getPaginationParams(req);
-    const result = await TaskService.getAllPaginated(filter, pagination);
+    const includeInactive = req.query.includeInactive === 'true';
+    const result = await TaskService.getAllPaginated(filter, pagination, undefined, undefined, undefined, includeInactive);
     res.status(200).json({ status: 'success', ...result });
   });
 }

@@ -28,6 +28,16 @@ export function getCurrentUser(req: Request): { id: string; role: UserRole } {
   return { id: req.user!.id, role: req.user!.role as UserRole };
 }
 
+export function isProjectMember(userId: string, project: Record<string, unknown> | null, userRole: UserRole): boolean {
+  if (!project) return false;
+  if (userRole === UserRole.ADMIN) return true;
+  const createdBy = project['createdBy'];
+  if (createdBy && (createdBy as { toString(): string }).toString() === userId) return true;
+  const members = project['members'] as { toString(): string }[] | undefined;
+  if (members?.some((m) => m.toString() === userId)) return true;
+  return false;
+}
+
 export const USER_POPULATE = {
   path: 'createdBy updatedBy lastReviewedBy lastAssignTo',
   select: 'userName email',

@@ -26,7 +26,8 @@ export class BaseController<T extends mongoose.Document> {
     const pagination = getPaginationParams(req);
     const search = (req.query.search as string) || undefined;
     const exactMatch = req.query.exactMatch === 'true';
-    const result = await this.service.getAllPaginated(filter, pagination, search, undefined, exactMatch);
+    const includeInactive = req.query.includeInactive === 'true';
+    const result = await this.service.getAllPaginated(filter, pagination, search, undefined, exactMatch, includeInactive);
     res.status(200).json({ status: 'success', ...result });
   });
 

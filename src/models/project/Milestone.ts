@@ -7,6 +7,7 @@ const milestoneSchema = new Schema<IMilestone>(
     ...baseSchemaFields,
     name: { type: String, required: true },
     projectId: { type: Schema.Types.ObjectId, ref: 'Project', required: true },
+    isActive: { type: Boolean, default: true },
   },
   { timestamps: true }
 );

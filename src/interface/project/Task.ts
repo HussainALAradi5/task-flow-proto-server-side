@@ -18,4 +18,5 @@ export interface ITask extends IBaseEntity {
   deliveredDate?: Date;
   lastReviewedBy?: Schema.Types.ObjectId;
   lastReviewedAt?: Date;
+  isActive: boolean;
 }

@@ -5,4 +5,6 @@ export interface IProject extends IBaseEntity {
   title: string;
   description?: string;
   teamId?: Schema.Types.ObjectId;
+  members: Schema.Types.ObjectId[];
+  isActive: boolean;
 }

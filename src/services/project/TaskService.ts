@@ -51,8 +51,9 @@ class TaskServiceClass extends BaseService<ITask> {
     search?: string,
     searchFields?: string[],
     exactMatch?: boolean,
+    includeInactive?: boolean,
   ): Promise<PaginatedResult<ITask>> {
-    const result = await super.getAllPaginated(filter, params, search, searchFields, exactMatch);
+    const result = await super.getAllPaginated(filter, params, search, searchFields, exactMatch, includeInactive);
     const populated = await Task.populate(result.data, USER_POPULATE);
     return { ...result, data: populated };
   }

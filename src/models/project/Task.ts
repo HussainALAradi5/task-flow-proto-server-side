@@ -33,6 +33,7 @@ const taskSchema = new Schema<ITask>(
     deliveredDate: { type: Date, default: null },
     lastReviewedBy: { type: Schema.Types.ObjectId, ref: "User", default: null },
     lastReviewedAt: { type: Date, default: null },
+    isActive: { type: Boolean, default: true },
   },
   { timestamps: true },
 );

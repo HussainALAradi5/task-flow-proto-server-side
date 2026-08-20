@@ -55,8 +55,12 @@ export class BaseService<T extends mongoose.Document> {
     search?: string,
     searchFields: string[] = ['title', 'name', 'description'],
     exactMatch?: boolean,
+    includeInactive?: boolean,
   ): Promise<PaginatedResult<T>> {
-    const query: Record<string, unknown> = { ...filter, isActive: { $ne: false } };
+    const query: Record<string, unknown> = { ...filter };
+    if (!includeInactive) {
+      query.isActive = { $ne: false };
+    }
 
     if (search && searchFields.length > 0) {
       const searchRegex = exactMatch
