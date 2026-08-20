@@ -19,7 +19,9 @@ class ProjectControllerClass extends BaseController<IProject> {
   getMyProjects = catchAsync(async (req: Request, res: Response): Promise<void> => {
     const filter = buildUserScopeFilter(req.user!);
     const pagination = getPaginationParams(req);
-    const result = await ProjectService.getAllPaginated(filter, pagination);
+    const search = (req.query.search as string) || undefined;
+    const exactMatch = req.query.exactMatch === 'true';
+    const result = await ProjectService.getAllPaginated(filter, pagination, search, undefined, exactMatch);
     res.status(200).json({ status: 'success', ...result });
   });
 }

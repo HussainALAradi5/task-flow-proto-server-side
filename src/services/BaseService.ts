@@ -54,11 +54,14 @@ export class BaseService<T extends mongoose.Document> {
     params: PaginationParams,
     search?: string,
     searchFields: string[] = ['title', 'name', 'description'],
+    exactMatch?: boolean,
   ): Promise<PaginatedResult<T>> {
     const query: Record<string, unknown> = { ...filter, isActive: { $ne: false } };
 
     if (search && searchFields.length > 0) {
-      const searchRegex = new RegExp(search, 'i');
+      const searchRegex = exactMatch
+        ? new RegExp(`^${search}$`, 'i')
+        : new RegExp(search, 'i');
       query['$or'] = searchFields.map((field) => ({ [field]: searchRegex }));
     }
 
