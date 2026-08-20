@@ -12,15 +12,25 @@ class TaskServiceClass extends BaseService<ITask> {
   }
 
   async create(data: Partial<ITask>): Promise<ITask> {
+    const existing = await Task.findOne({
+      projectId: data.projectId,
+      title: { $regex: `^${data.title}$`, $options: 'i' },
+    });
+    if (existing) {
+      throw new Error('A task with this title already exists in this project');
+    }
     const task = await super.create(data);
     await EventService.logEvent('Task created', EntityType.TASK, task.id, `New task: ${task.title}`, data.createdBy?.toString());
     return task;
   }
 
-  async update(id: string, data: Partial<ITask>): Promise<ITask | null> {
+  async update(id: string, data: Partial<ITask>, updatedBy?: string): Promise<ITask | null> {
+    if (updatedBy) {
+      data.updatedBy = updatedBy as unknown as ITask['updatedBy'];
+    }
     const updated = await super.update(id, data);
     if (updated) {
-      await EventService.logEvent('Task updated', EntityType.TASK, id, 'Task details updated', id);
+      await EventService.logEvent('Task updated', EntityType.TASK, id, 'Task details updated', updatedBy);
     }
     return updated;
   }

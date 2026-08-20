@@ -12,4 +12,9 @@ export interface ITask extends IBaseEntity {
   milestoneId?: Schema.Types.ObjectId;
   assignTo?: Schema.Types.ObjectId;
   lastAssignTo?: Schema.Types.ObjectId;
+  startDate?: Date;
+  targetDate?: Date;
+  endDate?: Date;
+  lastReviewedBy?: Schema.Types.ObjectId;
+  lastReviewedAt?: Date;
 }

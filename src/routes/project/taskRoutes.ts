@@ -22,7 +22,7 @@ class TaskRouteClass extends BaseRoute<typeof TaskController> {
       '/:id',
       restrictTo('Admin', 'Leader'),
       validateRequest(updateTaskSchema),
-      TaskController.update,
+      TaskController.updateTask,
     );
 
     this.router.delete('/:id', restrictTo('Admin', 'Leader'), TaskController.delete);

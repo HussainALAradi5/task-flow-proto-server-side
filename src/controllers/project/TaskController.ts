@@ -17,6 +17,23 @@ class TaskControllerClass extends BaseController<ITask> {
     res.status(201).json({ status: 'success', data: task });
   });
 
+  updateTask = catchAsync(async (req: Request, res: Response): Promise<void> => {
+    const id = parseParamId(req, 'id');
+    const data = req.body;
+
+    if (data.status === 'In Review' || data.status === 'Done') {
+      data.lastReviewedBy = req.user!.id;
+      data.lastReviewedAt = new Date();
+    }
+
+    const task = await TaskService.update(id, data, req.user!.id);
+    if (!task) {
+      res.status(404).json({ status: 'error', message: 'Resource not found' });
+      return;
+    }
+    res.status(200).json({ status: 'success', data: task });
+  });
+
   getMyTasksByProject = catchAsync(async (req: Request, res: Response): Promise<void> => {
     const projectId = parseParamId(req, 'projectId');
     const isAdmin = req.user!.role === UserRole.ADMIN;
