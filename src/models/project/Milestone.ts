@@ -11,4 +11,6 @@ const milestoneSchema = new Schema<IMilestone>(
   { timestamps: true }
 );
 
+milestoneSchema.index({ projectId: 1, name: 1 }, { unique: true, collation: { locale: 'en', strength: 2 } });
+
 export const Milestone = model<IMilestone>('Milestone', milestoneSchema);

@@ -12,6 +12,13 @@ class MilestoneServiceClass extends BaseService<IMilestone> {
   }
 
   async create(data: Partial<IMilestone>): Promise<IMilestone> {
+    const existing = await Milestone.findOne({
+      projectId: data.projectId,
+      name: { $regex: `^${data.name}$`, $options: 'i' },
+    });
+    if (existing) {
+      throw new Error('A milestone with this name already exists in this project');
+    }
     const milestone = await super.create(data);
     await EventService.logEvent('Milestone created', EntityType.MILESTONE, milestone.id, `New milestone: ${milestone.name}`, data.createdBy?.toString());
     return milestone;
