@@ -23,9 +23,7 @@ export const updateUserSchema = z.object({
     mobileNumber: z.string().optional(),
     teamId: z.string().optional(),
   }),
-  params: z.object({
-    id: z.string(),
-  }),
+  params: z.object({ id: z.string().optional() }),
 });
 
 export const updateRoleSchema = z.object({

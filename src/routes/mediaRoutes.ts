@@ -6,6 +6,9 @@ class MediaRouteClass extends BaseRoute<typeof MediaController> {
     super(MediaController);
 
     this.router.get('/entity/:entityId', MediaController.getMediaByEntity);
+    this.router.post('/', MediaController.create);
+    this.router.patch('/:id', MediaController.update);
+    this.router.delete('/:id', MediaController.delete);
   }
 }
 

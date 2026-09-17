@@ -24,7 +24,8 @@ export class BaseController<T extends mongoose.Document> {
   getAll = catchAsync(async (req: Request, res: Response): Promise<void> => {
     const filter = buildUserScopeFilter(req.user!);
     const pagination = getPaginationParams(req);
-    const result = await this.service.getAllPaginated(filter, pagination);
+    const search = typeof req.query.search === 'string' ? req.query.search.trim() : undefined;
+    const result = await this.service.getAllPaginated(filter, pagination, search);
     res.status(200).json({ status: 'success', ...result });
   });
 

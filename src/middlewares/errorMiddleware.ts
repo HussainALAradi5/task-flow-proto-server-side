@@ -4,6 +4,8 @@ import { config } from '../config/environment';
 interface CustomError extends Error {
   statusCode?: number;
   status?: string;
+  name: string;
+  code?: number;
 }
 
 export const globalErrorHandler = (
@@ -12,12 +14,16 @@ export const globalErrorHandler = (
   res: Response,
   next: NextFunction
 ): void => {
-  const statusCode = err.statusCode || 500;
+  const statusCode = err.name === 'CastError' ? 400 : err.code === 11000 ? 409 : err.statusCode || 500;
   const status = err.status || 'error';
 
   res.status(statusCode).json({
     status,
-    message: err.message,
+    message: err.name === 'CastError'
+      ? 'Invalid resource identifier'
+      : err.code === 11000
+        ? 'A resource with the same unique value already exists'
+        : err.message,
     ...(config.nodeEnv === 'development' && { stack: err.stack }),
   });
 };

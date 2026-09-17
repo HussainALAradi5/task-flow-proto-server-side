@@ -12,15 +12,9 @@ export class BaseRoute<TController extends BaseController<any>> {
   }
 
   protected initStandardRoutes(): void {
-    this.router
-      .route('/')
-      .post(this.controller.create)
-      .get(this.controller.getAll);
-
-    this.router
-      .route('/:id')
-      .get(this.controller.getById)
-      .patch(this.controller.update)
-      .delete(this.controller.delete);
+    // Mutations are registered by each resource route so authorization and
+    // validation cannot accidentally be bypassed by a generic handler.
+    this.router.get('/', this.controller.getAll);
+    this.router.get('/:id', this.controller.getById);
   }
 }

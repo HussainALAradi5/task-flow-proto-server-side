@@ -30,7 +30,7 @@ export const protect = async (req: Request, res: Response, next: NextFunction): 
 
     // Find the user directly from the service
     const currentUser = await UserService.getById(decoded.id);
-    if (!currentUser) {
+    if (!currentUser || currentUser.isActive === false) {
       res.status(401).json({ status: 'error', message: 'The user belonging to this token no longer exists.' });
       return;
     }

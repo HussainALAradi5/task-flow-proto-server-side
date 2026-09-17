@@ -8,9 +8,11 @@ class ProjectRouteClass extends BaseRoute<typeof ProjectController> {
   constructor() {
     super(ProjectController);
 
+    this.router.get('/slug/:slug', ProjectController.getBySlug);
+
     this.router.post(
       '/',
-      restrictTo('Admin', 'Leader'),
+      restrictTo('Admin', 'Leader', 'Member'),
       validateRequest(createProjectSchema),
       ProjectController.createProject,
     );

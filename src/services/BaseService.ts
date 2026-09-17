@@ -18,6 +18,10 @@ function generateSlug(title: string): string {
   return base + '-' + crypto.randomBytes(3).toString('hex');
 }
 
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 export class BaseService<T extends mongoose.Document> {
   protected model: Model<T>;
 
@@ -27,7 +31,9 @@ export class BaseService<T extends mongoose.Document> {
 
   async create(data: Partial<T>): Promise<T> {
     const code = generateCode();
-    const slug = (data as Record<string, unknown>).slug as string || generateSlug((data as Record<string, unknown>).name as string || code);
+    const recordData = data as Record<string, unknown>;
+    const slugSource = recordData.title || recordData.name || code;
+    const slug = recordData.slug as string || generateSlug(String(slugSource));
     const payload = { ...data, code, slug };
     const record = new this.model(payload);
     return await record.save();
@@ -58,12 +64,12 @@ export class BaseService<T extends mongoose.Document> {
     const query: Record<string, unknown> = { ...filter, isActive: { $ne: false } };
 
     if (search && searchFields.length > 0) {
-      const searchRegex = new RegExp(search, 'i');
+      const searchRegex = new RegExp(escapeRegExp(search), 'i');
       query['$or'] = searchFields.map((field) => ({ [field]: searchRegex }));
     }
 
     const [data, total] = await Promise.all([
-      this.model.find(query as QueryFilter<T>).skip(params.skip).limit(params.limit).exec(),
+      this.model.find(query as QueryFilter<T>).sort({ updatedAt: -1 }).skip(params.skip).limit(params.limit).exec(),
       this.model.countDocuments(query as QueryFilter<T>).exec(),
     ]);
 

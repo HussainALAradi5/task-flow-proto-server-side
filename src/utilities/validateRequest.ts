@@ -8,11 +8,12 @@ export const validateRequest = (schema: ZodSchema) => {
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       // Validates body, query, and params dynamically
-      await schema.parseAsync({
+      const parsed = await schema.parseAsync({
         body: req.body,
         query: req.query,
         params: req.params,
-      });
+      }) as { body?: unknown };
+      if (parsed.body !== undefined) req.body = parsed.body;
       next();
     } catch (error) {
       if (error instanceof ZodError) {

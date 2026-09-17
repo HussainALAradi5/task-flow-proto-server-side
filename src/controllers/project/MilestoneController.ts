@@ -25,7 +25,8 @@ class MilestoneControllerClass extends BaseController<IMilestone> {
       : MilestoneService.buildProjectUserFilter(projectId, req.user!.id);
 
     const pagination = getPaginationParams(req);
-    const result = await MilestoneService.getAllPaginated(filter, pagination);
+    const search = typeof req.query.search === 'string' ? req.query.search.trim() : undefined;
+    const result = await MilestoneService.getAllPaginated(filter, pagination, search);
     res.status(200).json({ status: 'success', ...result });
   });
 }

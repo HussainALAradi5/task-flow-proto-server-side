@@ -3,6 +3,7 @@ import cors from 'cors';
 import masterRouter from './routes';
 import { notFoundHandler } from './middlewares/notFoundMiddleware';
 import { globalErrorHandler } from './middlewares/errorMiddleware';
+import { config } from './config/environment';
 
 const app: Application = express();
 
@@ -11,12 +12,8 @@ app.use(cors({
   origin: function (origin, callback) {
     // Allow requests with no origin (curl, Postman, server-to-server)
     if (!origin) return callback(null, true);
-    const allowed = [
-      'http://localhost:4200',
-      'http://localhost:4300',
-      'http://localhost:3000',
-    ];
-    if (allowed.includes(origin) || origin.startsWith('http://localhost:')) {
+    const allowed = config.corsOrigins;
+    if (allowed.includes(origin) || (config.nodeEnv === 'development' && origin.startsWith('http://localhost:'))) {
       return callback(null, true);
     }
     callback(new Error('Not allowed by CORS'));

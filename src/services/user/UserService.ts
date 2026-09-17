@@ -39,6 +39,7 @@ class UserServiceClass extends BaseService<IUser> {
 
   async authenticate(identifier: string, passwordPlain: string): Promise<IUser | null> {
     const user = await this.model.findOne({
+      isActive: { $ne: false },
       $or: [{ email: identifier }, { userName: identifier }, { mobileNumber: identifier }],
     }).select('+password').exec();
     if (!user || !user.password) return null;

@@ -10,7 +10,7 @@ router.get('/task/:taskId', CommentController.getCommentsByTask);
 
 router.post(
   '/',
-  restrictTo('Admin', 'Leader'),
+  restrictTo('Admin', 'Leader', 'Member'),
   validateRequest(createCommentSchema),
   CommentController.createComment,
 );

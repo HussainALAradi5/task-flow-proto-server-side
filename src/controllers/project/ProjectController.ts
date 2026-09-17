@@ -5,6 +5,8 @@ import { ProjectService } from '../../services/project/ProjectService';
 import { catchAsync } from '../../utilities/catchAsync';
 import { getPaginationParams } from '../../utilities/pagination';
 import { buildUserScopeFilter } from '../../utilities/helpers';
+import { parseParamId } from '../../utilities/helpers';
+import { UserRole } from '../../enums/user/UserRole';
 
 class ProjectControllerClass extends BaseController<IProject> {
   constructor() {
@@ -21,6 +23,23 @@ class ProjectControllerClass extends BaseController<IProject> {
     const pagination = getPaginationParams(req);
     const result = await ProjectService.getAllPaginated(filter, pagination);
     res.status(200).json({ status: 'success', ...result });
+  });
+
+  getBySlug = catchAsync(async (req: Request, res: Response): Promise<void> => {
+    const slug = parseParamId(req, 'slug');
+    const project = await ProjectService.getBySlug(slug);
+    if (!project) {
+      res.status(404).json({ status: 'error', message: 'Project not found' });
+      return;
+    }
+    if (
+      req.user!.role !== UserRole.ADMIN &&
+      project.createdBy?.toString() !== req.user!.id
+    ) {
+      res.status(404).json({ status: 'error', message: 'Project not found' });
+      return;
+    }
+    res.status(200).json({ status: 'success', data: project });
   });
 }
 
