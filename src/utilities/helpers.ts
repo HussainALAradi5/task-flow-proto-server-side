@@ -12,10 +12,10 @@ export function toObjectId(value: string): Types.ObjectId {
   return new Types.ObjectId(value);
 }
 
-export function buildUserScopeFilter<T extends Record<string, any>>(
+export function buildUserScopeFilter<T extends Record<string, unknown>>(
   user: IUser,
   extra: Partial<T> = {},
-): Record<string, any> {
+): Record<string, unknown> {
   if (user.role === UserRole.ADMIN) return extra;
   return { ...extra, createdBy: user.id };
 }
@@ -23,3 +23,23 @@ export function buildUserScopeFilter<T extends Record<string, any>>(
 export function isValidEnumValue<T extends object>(value: unknown, enumObj: T): value is T[keyof T] {
   return Object.values(enumObj).includes(value as T[keyof T]);
 }
+
+export function getCurrentUser(req: Request): { id: string; role: UserRole } {
+  return { id: req.user!.id, role: req.user!.role as UserRole };
+}
+
+export function isProjectMember(userId: string, project: Record<string, unknown> | null, userRole: UserRole): boolean {
+  if (!project) return false;
+  if (userRole === UserRole.ADMIN) return true;
+  const createdBy = project['createdBy'];
+  if (createdBy && (createdBy as { toString(): string }).toString() === userId) return true;
+  const members = project['members'] as { toString(): string }[] | undefined;
+  if (members?.some((m) => m.toString() === userId)) return true;
+  return false;
+}
+
+export const USER_POPULATE = {
+  path: 'createdBy updatedBy lastReviewedBy lastAssignTo',
+  select: 'userName email',
+  model: 'User',
+};

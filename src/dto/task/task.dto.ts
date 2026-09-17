@@ -9,6 +9,10 @@ export interface CreateTaskDto {
   projectId: string;
   milestoneId?: string;
   assignTo?: string;
+  startDate?: string;
+  targetDate?: string;
+  endDate?: string;
+  deliveredDate?: string;
 }
 
 export interface UpdateTaskDto {
@@ -18,4 +22,8 @@ export interface UpdateTaskDto {
   priority?: TaskPriority;
   milestoneId?: string;
   assignTo?: string;
+  startDate?: string;
+  targetDate?: string;
+  endDate?: string;
+  deliveredDate?: string;
 }

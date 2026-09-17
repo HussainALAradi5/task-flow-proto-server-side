@@ -1,4 +1,4 @@
-import mongoose, { HydratedDocument, Schema, model } from 'mongoose';
+import { Schema, model } from 'mongoose';
 import { ITeam } from '../../interface/team/Team';
 import { baseSchemaFields } from '../BaseModel';
 

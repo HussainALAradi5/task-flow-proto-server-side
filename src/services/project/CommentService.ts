@@ -5,10 +5,31 @@ import { EventService } from '../EventService';
 import { EntityType } from '../../enums/EntityType';
 import { toObjectId } from '../../utilities/helpers';
 import { QueryFilter } from 'mongoose';
+import { PaginatedResult } from '../../interface/Pagination';
+import { PaginationParams } from '../../utilities/pagination';
+
+const COMMENT_POPULATE = {
+  path: 'createdBy',
+  select: 'userName email',
+  model: 'User',
+};
 
 class CommentServiceClass extends BaseService<IComment> {
   constructor() {
     super(Comment);
+  }
+
+  override async getAllPaginated(
+    filter: QueryFilter<IComment> = {},
+    params: PaginationParams,
+    search?: string,
+    searchFields?: string[],
+    exactMatch?: boolean,
+    includeInactive?: boolean,
+  ): Promise<PaginatedResult<IComment>> {
+    const result = await super.getAllPaginated(filter, params, search, searchFields, exactMatch, includeInactive);
+    const populated = await Comment.populate(result.data, COMMENT_POPULATE);
+    return { ...result, data: populated };
   }
 
   async create(data: Partial<IComment>): Promise<IComment> {

@@ -9,6 +9,8 @@ const projectSchema = new Schema<IProject>(
     title: { type: String, required: true, unique: true },
     description: { type: String, default: '' },
     teamId: { type: Schema.Types.ObjectId, ref: 'Team', default: null },
+    members: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+    isActive: { type: Boolean, default: true },
   },
   { timestamps: true }
 );

@@ -3,8 +3,10 @@ import { Task } from '../../models/project/Task';
 import { BaseService } from '../BaseService';
 import { EventService } from '../EventService';
 import { EntityType } from '../../enums/EntityType';
-import { toObjectId } from '../../utilities/helpers';
+import { toObjectId, USER_POPULATE } from '../../utilities/helpers';
 import { QueryFilter } from 'mongoose';
+import { PaginatedResult } from '../../interface/Pagination';
+import { PaginationParams } from '../../utilities/pagination';
 
 class TaskServiceClass extends BaseService<ITask> {
   constructor() {
@@ -12,15 +14,25 @@ class TaskServiceClass extends BaseService<ITask> {
   }
 
   async create(data: Partial<ITask>): Promise<ITask> {
+    const existing = await Task.findOne({
+      projectId: data.projectId,
+      title: { $regex: `^${data.title}$`, $options: 'i' },
+    });
+    if (existing) {
+      throw new Error('A task with this title already exists in this project');
+    }
     const task = await super.create(data);
     await EventService.logEvent('Task created', EntityType.TASK, task.id, `New task: ${task.title}`, data.createdBy?.toString());
     return task;
   }
 
-  async update(id: string, data: Partial<ITask>): Promise<ITask | null> {
+  async update(id: string, data: Partial<ITask>, updatedBy?: string): Promise<ITask | null> {
+    if (updatedBy) {
+      data.updatedBy = updatedBy as unknown as ITask['updatedBy'];
+    }
     const updated = await super.update(id, data);
     if (updated) {
-      await EventService.logEvent('Task updated', EntityType.TASK, id, 'Task details updated', id);
+      await EventService.logEvent('Task updated', EntityType.TASK, id, 'Task details updated', updatedBy);
     }
     return updated;
   }
@@ -31,6 +43,19 @@ class TaskServiceClass extends BaseService<ITask> {
       await EventService.logEvent('Task deactivated', EntityType.TASK, id, 'Task was deactivated', id);
     }
     return deleted;
+  }
+
+  override async getAllPaginated(
+    filter: QueryFilter<ITask> = {},
+    params: PaginationParams,
+    search?: string,
+    searchFields?: string[],
+    exactMatch?: boolean,
+    includeInactive?: boolean,
+  ): Promise<PaginatedResult<ITask>> {
+    const result = await super.getAllPaginated(filter, params, search, searchFields, exactMatch, includeInactive);
+    const populated = await Task.populate(result.data, USER_POPULATE);
+    return { ...result, data: populated };
   }
 
   buildProjectFilter(projectId: string): QueryFilter<ITask> {

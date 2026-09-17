@@ -7,10 +7,8 @@ import { config } from './config/environment';
 
 const app: Application = express();
 
-// CORS — must be before any routes
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (curl, Postman, server-to-server)
     if (!origin) return callback(null, true);
     const allowed = config.corsOrigins;
     if (allowed.includes(origin) || (config.nodeEnv === 'development' && origin.startsWith('http://localhost:'))) {

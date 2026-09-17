@@ -7,6 +7,7 @@ const commentSchema = new Schema<IComment>(
     ...baseSchemaFields,
     content: { type: String, required: true },
     taskId: { type: Schema.Types.ObjectId, ref: 'Task', required: true },
+    isActive: { type: Boolean, default: true },
   },
   { timestamps: true },
 );

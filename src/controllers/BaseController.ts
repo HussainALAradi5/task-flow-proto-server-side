@@ -25,7 +25,9 @@ export class BaseController<T extends mongoose.Document> {
     const filter = buildUserScopeFilter(req.user!);
     const pagination = getPaginationParams(req);
     const search = typeof req.query.search === 'string' ? req.query.search.trim() : undefined;
-    const result = await this.service.getAllPaginated(filter, pagination, search);
+    const exactMatch = req.query.exactMatch === 'true';
+    const includeInactive = req.query.includeInactive === 'true';
+    const result = await this.service.getAllPaginated(filter, pagination, search, undefined, exactMatch, includeInactive);
     res.status(200).json({ status: 'success', ...result });
   });
 

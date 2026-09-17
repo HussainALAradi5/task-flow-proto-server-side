@@ -27,8 +27,17 @@ const taskSchema = new Schema<ITask>(
     },
     assignTo: { type: Schema.Types.ObjectId, ref: "User", default: null },
     lastAssignTo: { type: Schema.Types.ObjectId, ref: "User", default: null },
+    startDate: { type: Date, default: null },
+    targetDate: { type: Date, default: null },
+    endDate: { type: Date, default: null },
+    deliveredDate: { type: Date, default: null },
+    lastReviewedBy: { type: Schema.Types.ObjectId, ref: "User", default: null },
+    lastReviewedAt: { type: Date, default: null },
+    isActive: { type: Boolean, default: true },
   },
   { timestamps: true },
 );
+
+taskSchema.index({ projectId: 1, title: 1 }, { unique: true, collation: { locale: 'en', strength: 2 } });
 
 export const Task = model<ITask>("Task", taskSchema);
