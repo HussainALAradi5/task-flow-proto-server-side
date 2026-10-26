@@ -2,7 +2,7 @@ import { Router } from 'express';
 import eventRoutes from './eventRoutes';
 import mediaRoutes from './mediaRoutes';
 import { protect } from '../middlewares/authMiddleware';
-import { signup, login } from './user/authRoutes';
+import authRoutes from './user/authRoutes';
 import { profile, userCRUD } from './user/userRoutes';
 import projectRoutes from './project/projectRoutes';
 import milestoneRoutes from './project/milestoneRoutes';
@@ -13,7 +13,7 @@ import teamRoutes from './team/teamRoutes';
 const router = Router();
 
 // Public routes
-router.use('/users', signup, login);
+router.use('/users', authRoutes);
 
 // Protected routes
 router.use(protect);

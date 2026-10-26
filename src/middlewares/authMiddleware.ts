@@ -3,9 +3,6 @@ import jwt from 'jsonwebtoken';
 import { config } from '../config/environment';
 import { UserService } from '../services/user/UserService';
 import { IUser } from '../interface/user/User';
-import { Project } from '../models/project/Project';
-import { Task } from '../models/project/Task';
-import { isProjectMember } from '../utilities/helpers';
 
 declare global {
   namespace Express {
@@ -40,7 +37,6 @@ export const protect = async (req: Request, res: Response, next: NextFunction): 
     res.status(401).json({ status: 'error', message: 'Invalid token or session expired.' });
   }
 };
-
 export const restrictTo = (...roles: string[]) => {
   return (req: Request, res: Response, next: NextFunction): void => {
     if (!req.user || !roles.includes(req.user.role)) {
@@ -49,47 +45,4 @@ export const restrictTo = (...roles: string[]) => {
     }
     next();
   };
-};
-export const requireProjectMember = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  try {
-    const projectId = req.body.projectId || req.params.projectId;
-    if (!projectId) {
-      res.status(400).json({ status: 'error', message: 'Project ID is required.' });
-      return;
-    }
-
-    const project = await Project.findById(projectId).select('createdBy members').lean();
-    if (!isProjectMember(req.user!.id, project as unknown as Record<string, unknown>, req.user!.role)) {
-      res.status(403).json({ status: 'error', message: 'You are not a member of this project.' });
-      return;
-    }
-    next();
-  } catch (error) {
-    res.status(500).json({ status: 'error', message: 'Failed to verify project membership.' });
-  }
-};
-
-export const requireTaskProjectMember = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  try {
-    const taskId = req.params.id;
-    if (!taskId) {
-      res.status(400).json({ status: 'error', message: 'Task ID is required.' });
-      return;
-    }
-
-    const task = await Task.findById(taskId).select('projectId').lean();
-    if (!task) {
-      res.status(404).json({ status: 'error', message: 'Task not found.' });
-      return;
-    }
-
-    const project = await Project.findById(task.projectId).select('createdBy members').lean();
-    if (!isProjectMember(req.user!.id, project as unknown as Record<string, unknown>, req.user!.role)) {
-      res.status(403).json({ status: 'error', message: 'You are not a member of this project.' });
-      return;
-    }
-    next();
-  } catch (error) {
-    res.status(500).json({ status: 'error', message: 'Failed to verify project membership.' });
-  }
 };

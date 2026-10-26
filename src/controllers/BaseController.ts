@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { catchAsync } from '../utilities/catchAsync';
 import { getPaginationParams } from '../utilities/pagination';
-import { parseParamId, buildUserScopeFilter } from '../utilities/helpers';
+import { parseParamId, buildUserScopeFilter, canAccessOwnedRecord, canReadMemberRecord } from '../utilities/helpers';
 import { BaseService } from '../services/BaseService';
 import * as mongoose from 'mongoose';
 
@@ -11,15 +11,6 @@ export class BaseController<T extends mongoose.Document> {
   constructor(service: BaseService<T>) {
     this.service = service;
   }
-
-  create = catchAsync(async (req: Request, res: Response): Promise<void> => {
-    const payload = {
-      ...req.body,
-      ...(req.user && { createdBy: req.user.id }),
-    };
-    const item = await this.service.create(payload);
-    res.status(201).json({ status: 'success', data: item });
-  });
 
   getAll = catchAsync(async (req: Request, res: Response): Promise<void> => {
     const filter = buildUserScopeFilter(req.user!);
@@ -34,7 +25,7 @@ export class BaseController<T extends mongoose.Document> {
   getById = catchAsync(async (req: Request, res: Response): Promise<void> => {
     const id = parseParamId(req, 'id');
     const item = await this.service.getById(id);
-    if (!item) {
+    if (!canReadMemberRecord(req.user!, item)) {
       res.status(404).json({ status: 'error', message: 'Resource not found' });
       return;
     }
@@ -43,7 +34,12 @@ export class BaseController<T extends mongoose.Document> {
 
   update = catchAsync(async (req: Request, res: Response): Promise<void> => {
     const id = parseParamId(req, 'id');
-    const item = await this.service.update(id, req.body);
+    const existing = await this.service.getById(id);
+    if (!canAccessOwnedRecord(req.user!, existing)) {
+      res.status(404).json({ status: 'error', message: 'Resource not found' });
+      return;
+    }
+    const item = await this.service.update(id, req.body, req.user!.id);
     if (!item) {
       res.status(404).json({ status: 'error', message: 'Resource not found' });
       return;
@@ -53,7 +49,12 @@ export class BaseController<T extends mongoose.Document> {
 
   delete = catchAsync(async (req: Request, res: Response): Promise<void> => {
     const id = parseParamId(req, 'id');
-    const item = await this.service.softDelete(id);
+    const existing = await this.service.getById(id);
+    if (!canAccessOwnedRecord(req.user!, existing)) {
+      res.status(404).json({ status: 'error', message: 'Resource not found' });
+      return;
+    }
+    const item = await this.service.softDelete(id, req.user!.id);
     if (!item) {
       res.status(404).json({ status: 'error', message: 'Resource not found' });
       return;

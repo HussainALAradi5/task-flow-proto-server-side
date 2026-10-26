@@ -12,6 +12,6 @@ export const connectDatabase = async (): Promise<void> => {
     console.log('MongoDB Connected Successfully');
   } catch (error) {
     console.error('Database connection error:', error);
-    console.error('Server will start without database. API calls will fail until DB is connected.');
+    throw error;
   }
 };

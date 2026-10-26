@@ -4,8 +4,9 @@ import { IMedia } from '../interface/Media';
 import { MediaService } from '../services/MediaService';
 import { catchAsync } from '../utilities/catchAsync';
 import { getPaginationParams } from '../utilities/pagination';
-import { parseParamId } from '../utilities/helpers';
+import { parseParamId, buildUserScopeFilter } from '../utilities/helpers';
 import { EntityModelType } from '../enums/EntityModelType';
+import { Types } from 'mongoose';
 
 class MediaControllerClass extends BaseController<IMedia> {
   constructor() {
@@ -15,7 +16,11 @@ class MediaControllerClass extends BaseController<IMedia> {
   getMediaByEntity = catchAsync(async (req: Request, res: Response): Promise<void> => {
     const entityType = req.query.entityType as EntityModelType;
     const entityId = parseParamId(req, 'entityId');
-    const filter = MediaService.buildEntityFilter(entityType, entityId);
+    if (!Object.values(EntityModelType).includes(entityType) || !Types.ObjectId.isValid(entityId)) {
+      res.status(400).json({ status: 'error', message: 'Valid entityType and entityId are required' });
+      return;
+    }
+    const filter = buildUserScopeFilter(req.user!, MediaService.buildEntityFilter(entityType, entityId));
     const pagination = getPaginationParams(req);
     const result = await MediaService.getAllPaginated(filter, pagination);
     res.status(200).json({ status: 'success', ...result });

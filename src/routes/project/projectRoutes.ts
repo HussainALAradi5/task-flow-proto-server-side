@@ -12,7 +12,6 @@ class ProjectRouteClass extends BaseRoute<typeof ProjectController> {
 
     this.router.post(
       '/',
-      restrictTo('Admin', 'Leader', 'Member'),
       validateRequest(createProjectSchema),
       ProjectController.createProject,
     );
@@ -21,7 +20,7 @@ class ProjectRouteClass extends BaseRoute<typeof ProjectController> {
       '/:id',
       restrictTo('Admin', 'Leader'),
       validateRequest(updateProjectSchema),
-      ProjectController.update,
+      ProjectController.updateProject,
     );
 
     this.router.delete('/:id', restrictTo('Admin'), ProjectController.delete);

@@ -28,14 +28,23 @@ export function getCurrentUser(req: Request): { id: string; role: UserRole } {
   return { id: req.user!.id, role: req.user!.role as UserRole };
 }
 
-export function isProjectMember(userId: string, project: Record<string, unknown> | null, userRole: UserRole): boolean {
-  if (!project) return false;
-  if (userRole === UserRole.ADMIN) return true;
-  const createdBy = project['createdBy'];
-  if (createdBy && (createdBy as { toString(): string }).toString() === userId) return true;
-  const members = project['members'] as { toString(): string }[] | undefined;
-  if (members?.some((m) => m.toString() === userId)) return true;
-  return false;
+export function canAccessOwnedRecord(user: IUser, record: unknown): boolean {
+  if (!record || typeof record !== 'object') return false;
+  const createdBy = (record as { createdBy?: unknown }).createdBy;
+  return user.role === UserRole.ADMIN || createdBy?.toString() === user.id;
+}
+
+export function canReadMemberRecord(user: IUser, record: unknown): boolean {
+  if (canAccessOwnedRecord(user, record)) return true;
+  if (!record || typeof record !== 'object') return false;
+  const members = (record as { members?: unknown }).members;
+  return Array.isArray(members) && members.some((member) => member?.toString() === user.id);
+}
+
+export function buildMemberScopeFilter(user: IUser): Record<string, unknown> {
+  if (user.role === UserRole.ADMIN) return {};
+  const id = toObjectId(user.id);
+  return { $or: [{ createdBy: id }, { members: id }] };
 }
 
 export const USER_POPULATE = {

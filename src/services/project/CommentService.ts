@@ -38,18 +38,18 @@ class CommentServiceClass extends BaseService<IComment> {
     return comment;
   }
 
-  async update(id: string, data: Partial<IComment>): Promise<IComment | null> {
+  async update(id: string, data: Partial<IComment>, actorId?: string): Promise<IComment | null> {
     const updated = await super.update(id, data);
     if (updated) {
-      await EventService.logEvent('Comment updated', EntityType.TASK, updated.taskId.toString(), 'Comment was updated', id);
+      await EventService.logEvent('Comment updated', EntityType.TASK, updated.taskId.toString(), 'Comment was updated', actorId);
     }
     return updated;
   }
 
-  async softDelete(id: string): Promise<IComment | null> {
+  async softDelete(id: string, actorId?: string): Promise<IComment | null> {
     const deleted = await super.softDelete(id);
     if (deleted) {
-      await EventService.logEvent('Comment deleted', EntityType.TASK, deleted.taskId.toString(), 'Comment was deleted', id);
+      await EventService.logEvent('Comment deleted', EntityType.TASK, deleted.taskId.toString(), 'Comment was deleted', actorId);
     }
     return deleted;
   }

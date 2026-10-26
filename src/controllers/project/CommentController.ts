@@ -6,6 +6,9 @@ import { catchAsync } from '../../utilities/catchAsync';
 import { getPaginationParams } from '../../utilities/pagination';
 import { parseParamId } from '../../utilities/helpers';
 import { UserRole } from '../../enums/user/UserRole';
+import { Task } from '../../models/project/Task';
+import { Project } from '../../models/project/Project';
+import { canReadMemberRecord } from '../../utilities/helpers';
 
 class CommentControllerClass extends BaseController<IComment> {
   constructor() {
@@ -13,12 +16,24 @@ class CommentControllerClass extends BaseController<IComment> {
   }
 
   createComment = catchAsync(async (req: Request, res: Response): Promise<void> => {
+    const task = await Task.findById(req.body.taskId);
+    const project = task && await Project.findById(task.projectId);
+    if (!canReadMemberRecord(req.user!, project)) {
+      res.status(404).json({ status: 'error', message: 'Task not found' });
+      return;
+    }
     const comment = await CommentService.create({ ...req.body, createdBy: req.user!.id });
     res.status(201).json({ status: 'success', data: comment });
   });
 
   getCommentsByTask = catchAsync(async (req: Request, res: Response): Promise<void> => {
     const taskId = parseParamId(req, 'taskId');
+    const task = await Task.findById(taskId);
+    const project = task && await Project.findById(task.projectId);
+    if (!canReadMemberRecord(req.user!, project)) {
+      res.status(404).json({ status: 'error', message: 'Task not found' });
+      return;
+    }
     const filter = CommentService.buildTaskFilter(taskId);
     const pagination = getPaginationParams(req);
     const result = await CommentService.getAllPaginated(filter, pagination);
@@ -34,15 +49,22 @@ class CommentControllerClass extends BaseController<IComment> {
       return;
     }
 
+    const task = await Task.findById(comment.taskId);
+    const project = task && await Project.findById(task.projectId);
+    if (!canReadMemberRecord(req.user!, project)) {
+      res.status(404).json({ status: 'error', message: 'Comment not found' });
+      return;
+    }
+
     const isCreator = comment.createdBy?.toString() === req.user!.id;
-    const isAdminOrLeader = req.user!.role === UserRole.ADMIN || req.user!.role === UserRole.LEADER;
+    const isAdminOrLeader = req.user!.role === UserRole.ADMIN;
 
     if (!isCreator && !isAdminOrLeader) {
       res.status(403).json({ status: 'error', message: 'You can only edit your own comments' });
       return;
     }
 
-    const updated = await CommentService.update(id, req.body);
+    const updated = await CommentService.update(id, req.body, req.user!.id);
     res.status(200).json({ status: 'success', data: updated });
   });
 
@@ -55,15 +77,22 @@ class CommentControllerClass extends BaseController<IComment> {
       return;
     }
 
+    const task = await Task.findById(comment.taskId);
+    const project = task && await Project.findById(task.projectId);
+    if (!canReadMemberRecord(req.user!, project)) {
+      res.status(404).json({ status: 'error', message: 'Comment not found' });
+      return;
+    }
+
     const isCreator = comment.createdBy?.toString() === req.user!.id;
-    const isAdminOrLeader = req.user!.role === UserRole.ADMIN || req.user!.role === UserRole.LEADER;
+    const isAdminOrLeader = req.user!.role === UserRole.ADMIN;
 
     if (!isCreator && !isAdminOrLeader) {
       res.status(403).json({ status: 'error', message: 'You can only delete your own comments' });
       return;
     }
 
-    await CommentService.softDelete(id);
+    await CommentService.softDelete(id, req.user!.id);
     res.status(200).json({ status: 'success', message: 'Comment deleted successfully' });
   });
 }

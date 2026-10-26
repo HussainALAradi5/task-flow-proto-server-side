@@ -43,18 +43,18 @@ class ProjectServiceClass extends BaseService<IProject> {
     return project;
   }
 
-  async update(id: string, data: Partial<IProject>): Promise<IProject | null> {
+  async update(id: string, data: Partial<IProject>, actorId?: string): Promise<IProject | null> {
     const updated = await super.update(id, data);
     if (updated) {
-      await EventService.logEvent('Project updated', EntityType.PROJECT, id, 'Project details updated', id);
+      await EventService.logEvent('Project updated', EntityType.PROJECT, id, `Updated project: ${updated.title}`, actorId);
     }
     return updated;
   }
 
-  async softDelete(id: string): Promise<IProject | null> {
+  async softDelete(id: string, actorId?: string): Promise<IProject | null> {
     const deleted = await super.softDelete(id);
     if (deleted) {
-      await EventService.logEvent('Project deactivated', EntityType.PROJECT, id, 'Project was deactivated', id);
+      await EventService.logEvent('Project deactivated', EntityType.PROJECT, id, `Deactivated project: ${deleted.title}`, actorId);
     }
     return deleted;
   }

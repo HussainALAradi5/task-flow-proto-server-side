@@ -14,9 +14,10 @@ class TaskServiceClass extends BaseService<ITask> {
   }
 
   async create(data: Partial<ITask>): Promise<ITask> {
+    const escapedTitle = data.title?.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const existing = await Task.findOne({
       projectId: data.projectId,
-      title: { $regex: `^${data.title}$`, $options: 'i' },
+      title: { $regex: `^${escapedTitle}$`, $options: 'i' },
     });
     if (existing) {
       throw new Error('A task with this title already exists in this project');
@@ -26,21 +27,28 @@ class TaskServiceClass extends BaseService<ITask> {
     return task;
   }
 
-  async update(id: string, data: Partial<ITask>, updatedBy?: string): Promise<ITask | null> {
+  async update(id: string, data: Partial<ITask>, updatedBy?: string, previousStatus?: ITask['status']): Promise<ITask | null> {
     if (updatedBy) {
       data.updatedBy = updatedBy as unknown as ITask['updatedBy'];
     }
     const updated = await super.update(id, data);
     if (updated) {
-      await EventService.logEvent('Task updated', EntityType.TASK, id, 'Task details updated', updatedBy);
+      const moved = previousStatus && data.status && previousStatus !== data.status;
+      await EventService.logEvent(
+        moved ? 'Task moved' : 'Task updated',
+        EntityType.TASK,
+        id,
+        moved ? `Moved ${updated.title} from ${previousStatus} to ${data.status}` : `Updated task: ${updated.title}`,
+        updatedBy,
+      );
     }
     return updated;
   }
 
-  async softDelete(id: string): Promise<ITask | null> {
+  async softDelete(id: string, actorId?: string): Promise<ITask | null> {
     const deleted = await super.softDelete(id);
     if (deleted) {
-      await EventService.logEvent('Task deactivated', EntityType.TASK, id, 'Task was deactivated', id);
+      await EventService.logEvent('Task deactivated', EntityType.TASK, id, `Deactivated task: ${deleted.title}`, actorId);
     }
     return deleted;
   }

@@ -8,4 +8,4 @@ const router = Router();
 router.post('/signup', validateRequest(signupSchema), UserController.signup);
 router.post('/login', validateRequest(loginSchema), UserController.login);
 
-export { router as signup, router as login };
+export default router;

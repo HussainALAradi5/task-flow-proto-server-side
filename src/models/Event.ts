@@ -15,4 +15,6 @@ const eventSchema = new Schema<IEvent>(
   { timestamps: true },
 );
 
+eventSchema.index({ entityType: 1, entityId: 1, createdAt: -1 });
+
 export const Event = model<IEvent>("Event", eventSchema);

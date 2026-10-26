@@ -23,7 +23,9 @@ export const globalErrorHandler = (
       ? 'Invalid resource identifier'
       : err.code === 11000
         ? 'A resource with the same unique value already exists'
-        : err.message,
+        : statusCode >= 500 && config.nodeEnv === 'production'
+          ? 'Internal server error'
+          : err.message,
     ...(config.nodeEnv === 'development' && { stack: err.stack }),
   });
 };

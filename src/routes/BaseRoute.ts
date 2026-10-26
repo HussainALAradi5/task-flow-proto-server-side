@@ -16,8 +16,7 @@ export class BaseRoute<TController extends BaseController<any>> {
   }
 
   protected initStandardRoutes(): void {
-    // Mutations are registered by each resource route so authorization and
-    // validation cannot accidentally be bypassed by a generic handler.
+    // Write routes must be registered by each feature with its own validation and access rules.
     this.router.get('/', this.controller.getAll);
     this.router.get('/:id', this.controller.getById);
   }

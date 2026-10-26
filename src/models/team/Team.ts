@@ -8,6 +8,7 @@ const teamSchema = new Schema<ITeam>(
     ...baseSchemaFields,
     name: { type: String, required: true },
     description: { type: String, default: '' },
+    members: [{ type: Schema.Types.ObjectId, ref: 'User' }],
     isActive: { type: Boolean, default: true },
   },
   { timestamps: true }

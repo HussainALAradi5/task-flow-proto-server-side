@@ -37,18 +37,18 @@ class TeamServiceClass extends BaseService<ITeam> {
     return team;
   }
 
-  async update(id: string, data: Partial<ITeam>): Promise<ITeam | null> {
+  async update(id: string, data: Partial<ITeam>, actorId?: string): Promise<ITeam | null> {
     const updated = await super.update(id, data);
     if (updated) {
-      await EventService.logEvent('Team updated', EntityType.TEAM, id, 'Team details updated', id);
+      await EventService.logEvent('Team updated', EntityType.TEAM, id, `Updated team: ${updated.name}`, actorId);
     }
     return updated;
   }
 
-  async softDelete(id: string): Promise<ITeam | null> {
+  async softDelete(id: string, actorId?: string): Promise<ITeam | null> {
     const deleted = await super.softDelete(id);
     if (deleted) {
-      await EventService.logEvent('Team deactivated', EntityType.TEAM, id, 'Team was deactivated', id);
+      await EventService.logEvent('Team deactivated', EntityType.TEAM, id, `Deactivated team: ${deleted.name}`, actorId);
     }
     return deleted;
   }

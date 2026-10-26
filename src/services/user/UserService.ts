@@ -45,7 +45,7 @@ class UserServiceClass extends BaseService<IUser> {
     if (!user || !user.password) return null;
 
     const isMatch = await bcrypt.compare(passwordPlain, user.password);
-    return isMatch ? user : null;
+    return isMatch && user.isActive !== false ? user : null;
   }
 
   async findByEmailOrUsername(email: string, userName: string): Promise<IUser | null> {

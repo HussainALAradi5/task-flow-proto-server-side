@@ -45,18 +45,18 @@ class MilestoneServiceClass extends BaseService<IMilestone> {
     return milestone;
   }
 
-  async update(id: string, data: Partial<IMilestone>): Promise<IMilestone | null> {
+  async update(id: string, data: Partial<IMilestone>, actorId?: string): Promise<IMilestone | null> {
     const updated = await super.update(id, data);
     if (updated) {
-      await EventService.logEvent('Milestone updated', EntityType.MILESTONE, id, 'Milestone details updated', id);
+      await EventService.logEvent('Milestone updated', EntityType.MILESTONE, id, `Updated milestone: ${updated.name}`, actorId);
     }
     return updated;
   }
 
-  async softDelete(id: string): Promise<IMilestone | null> {
+  async softDelete(id: string, actorId?: string): Promise<IMilestone | null> {
     const deleted = await super.softDelete(id);
     if (deleted) {
-      await EventService.logEvent('Milestone deactivated', EntityType.MILESTONE, id, 'Milestone was deactivated', id);
+      await EventService.logEvent('Milestone deactivated', EntityType.MILESTONE, id, `Deactivated milestone: ${deleted.name}`, actorId);
     }
     return deleted;
   }

@@ -69,11 +69,14 @@ export class BaseService<T extends mongoose.Document> {
     }
 
     if (search && searchFields.length > 0) {
-      const escapedSearch = escapeRegExp(search);
+      const escaped = escapeRegExp(search.slice(0, 100));
       const searchRegex = exactMatch
-        ? new RegExp(`^${escapedSearch}$`, 'i')
-        : new RegExp(escapedSearch, 'i');
-      query['$or'] = searchFields.map((field) => ({ [field]: searchRegex }));
+        ? new RegExp(`^${escaped}$`, 'i')
+        : new RegExp(escaped, 'i');
+      query['$and'] = [
+        ...(Array.isArray(query['$and']) ? query['$and'] : []),
+        { $or: searchFields.map((field) => ({ [field]: searchRegex })) },
+      ];
     }
 
     const [data, total] = await Promise.all([
@@ -92,13 +95,13 @@ export class BaseService<T extends mongoose.Document> {
     };
   }
 
-  async update(id: string, data: UpdateQuery<T>): Promise<T | null> {
+  async update(id: string, data: UpdateQuery<T>, _actorId?: string): Promise<T | null> {
     return await this.model
       .findByIdAndUpdate(id, data, { new: true, runValidators: true })
       .exec();
   }
 
-  async softDelete(id: string): Promise<T | null> {
+  async softDelete(id: string, _actorId?: string): Promise<T | null> {
     return await this.model
       .findByIdAndUpdate(id, { isActive: false } as unknown as UpdateQuery<T>, { new: true })
       .exec();

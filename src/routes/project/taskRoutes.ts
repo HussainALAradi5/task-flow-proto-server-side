@@ -22,7 +22,7 @@ class TaskRouteClass extends BaseRoute<typeof TaskController> {
       TaskController.updateTask,
     );
 
-    this.router.delete('/:id', TaskController.delete);
+    this.router.delete('/:id', TaskController.deleteTask);
   }
 }
 

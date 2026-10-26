@@ -2,9 +2,10 @@ import { BaseController } from '../BaseController';
 import { ITeam } from '../../interface/team/Team';
 import { TeamService } from '../../services/team/TeamService';
 import { catchAsync } from '../../utilities/catchAsync';
-import { getPaginationParams } from '../../utilities/pagination';
-import { buildUserScopeFilter } from '../../utilities/helpers';
 import { Request, Response } from 'express';
+import { buildMemberScopeFilter } from '../../utilities/helpers';
+import { getPaginationParams } from '../../utilities/pagination';
+import { QueryFilter } from 'mongoose';
 
 class TeamControllerClass extends BaseController<ITeam> {
   constructor() {
@@ -16,12 +17,18 @@ class TeamControllerClass extends BaseController<ITeam> {
     res.status(201).json({ status: 'success', data: team });
   });
 
-  getMyTeams = catchAsync(async (req: Request, res: Response): Promise<void> => {
-    const filter = buildUserScopeFilter(req.user!);
-    const pagination = getPaginationParams(req);
-    const result = await TeamService.getAllPaginated(filter, pagination);
+  override getAll = catchAsync(async (req: Request, res: Response): Promise<void> => {
+    const result = await TeamService.getAllPaginated(
+      buildMemberScopeFilter(req.user!) as QueryFilter<ITeam>,
+      getPaginationParams(req),
+      typeof req.query.search === 'string' ? req.query.search : undefined,
+      undefined,
+      req.query.exactMatch === 'true',
+      req.query.includeInactive === 'true',
+    );
     res.status(200).json({ status: 'success', ...result });
   });
+
 }
 
 export const TeamController = new TeamControllerClass();
