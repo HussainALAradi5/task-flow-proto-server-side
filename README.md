@@ -2,6 +2,10 @@
 
 Express and MongoDB API for the [TaskFlow client](https://github.com/HussainALAradi5/task-flow-proto-client-side). Projects act as boards, tasks act as cards, and task status determines the Kanban column. Project activity is recorded as an ordered history.
 
+## Live demo
+
+The [client](https://taskflow-proto-client.onrender.com) and [API health endpoint](https://taskflow-proto-api.onrender.com/) are hosted on Render's free plans. The API may take about a minute to wake after inactivity. The live database is a dedicated MongoDB Atlas Free cluster seeded with the [three demo roles](#demo-accounts). Obtain the demo password privately from the project owner; do not put privileged demo credentials in a public README. See the [free deployment guide](https://github.com/HussainALAradi5/task-flow-proto-documenation/blob/main/deploy-free-render.md) for configuration.
+
 ## Start locally (PowerShell)
 
 1. Install [Node.js 24 LTS](https://nodejs.org/en/download) and start a local MongoDB server, or obtain a MongoDB connection URI.
