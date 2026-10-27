@@ -7,6 +7,7 @@ import { getPaginationParams } from '../../utilities/pagination';
 import { parseParamId, getCurrentUser, canReadMemberRecord } from '../../utilities/helpers';
 import { Project } from '../../models/project/Project';
 import { Milestone } from '../../models/project/Milestone';
+import { taskDateError } from '../../utilities/taskDates';
 
 class TaskControllerClass extends BaseController<ITask> {
   constructor() {
@@ -25,6 +26,8 @@ class TaskControllerClass extends BaseController<ITask> {
       res.status(400).json({ status: 'error', message: 'Milestone does not belong to this project' });
       return;
     }
+    const dateError = taskDateError(req.body, new Date());
+    if (dateError) { res.status(400).json({ status: 'error', message: dateError }); return; }
     const task = await TaskService.create({ ...req.body, createdBy: id });
     res.status(201).json({ status: 'success', data: task });
   });
@@ -53,6 +56,14 @@ class TaskControllerClass extends BaseController<ITask> {
     if (data.status === 'Done' && !data.deliveredDate) {
       data.deliveredDate = new Date();
     }
+
+    const dateError = taskDateError({
+      startDate: data.startDate !== undefined ? data.startDate : existing!.startDate,
+      targetDate: data.targetDate !== undefined ? data.targetDate : existing!.targetDate,
+      endDate: data.endDate !== undefined ? data.endDate : existing!.endDate,
+      deliveredDate: data.deliveredDate !== undefined ? data.deliveredDate : existing!.deliveredDate,
+    }, existing!.createdAt);
+    if (dateError) { res.status(400).json({ status: 'error', message: dateError }); return; }
 
     const task = await TaskService.update(id, data, userId, existing!.status);
     if (!task) {

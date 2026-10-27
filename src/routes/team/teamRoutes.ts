@@ -3,6 +3,7 @@ import { BaseRoute } from '../BaseRoute';
 import { restrictTo } from '../../middlewares/authMiddleware';
 import { validateRequest } from '../../utilities/validateRequest';
 import { createTeamSchema, updateTeamSchema } from '../../validations';
+import { teamMemberSchema, removeTeamMemberSchema, respondToInvitationSchema } from '../../validations/team.schema';
 
 class TeamRouteClass extends BaseRoute<typeof TeamController> {
   constructor() {
@@ -23,6 +24,10 @@ class TeamRouteClass extends BaseRoute<typeof TeamController> {
     );
 
     this.router.delete('/:id', restrictTo('Admin'), TeamController.delete);
+    this.router.post('/:id/members', restrictTo('Admin', 'Leader'), validateRequest(teamMemberSchema), TeamController.addMember);
+    this.router.delete('/:id/members/:userId', restrictTo('Admin', 'Leader'), validateRequest(removeTeamMemberSchema), TeamController.removeMember);
+    this.router.get('/invitations/pending', TeamController.pendingInvitations);
+    this.router.post('/invitations/:invitationId/respond', validateRequest(respondToInvitationSchema), TeamController.respondToInvitation);
   }
 }
 

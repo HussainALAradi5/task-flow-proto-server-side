@@ -1,6 +1,6 @@
 # TaskFlow API
 
-Express and MongoDB API for the [TaskFlow client](https://github.com/HussainALAradi5/task-flow-proto-client-side). Projects act as boards, tasks act as cards, and task status determines the Kanban column. Project activity is recorded as an ordered history.
+Express and MongoDB API for the [TaskFlow client](https://github.com/HussainALAradi5/task-flow-proto-client-side). Projects act as boards, tasks act as cards, and task status determines the Kanban column. Project activity is recorded as an ordered history. Team invitations require recipient acceptance before access is granted.
 
 ## Live demo
 
@@ -58,4 +58,4 @@ npm start
 
 `npm start` runs the compiled build; run `npm run build` first. Set `NODE_ENV=production`, a strong `JWT_SECRET`, the deployment `MONGO_URI`, and the real client origin in `CORS_ORIGINS` for deployment. API paths use `/api`. See the [contract documentation](https://github.com/HussainALAradi5/task-flow-proto-documenation/blob/main/contract-verification.md) for the routes and access rules.
 
-The demo seed and API were also checked against an isolated temporary MongoDB instance: the seed ran twice, all three roles logged in, and the Member moved and commented on an Admin-created card while remaining unable to read Product Studio. The configured deployment database was not used.
+The demo seed and API were checked against an isolated temporary MongoDB instance: the seed ran twice, all three roles logged in, and the Member moved and commented on an Admin-created card while remaining unable to read Product Studio. A separate integration check verified invitation consent, duplicate and outsider rejection, access revocation, date validation, and a GIF comment. The Atlas demo database was seeded and its deployed API checked separately. See the [workflow review](https://github.com/HussainALAradi5/task-flow-proto-documenation/blob/main/trello-workflow-review.md) for the supported Trello-style features and limits.

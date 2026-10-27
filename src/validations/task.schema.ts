@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 const objectIdRegex = /^[a-f\d]{24}$/i;
+const dateField = z.iso.date().nullable().optional();
 
 export const createTaskSchema = z.object({
   body: z.object({
@@ -11,10 +12,10 @@ export const createTaskSchema = z.object({
     projectId: z.string().regex(objectIdRegex, 'Invalid projectId format'),
     milestoneId: z.string().regex(objectIdRegex, 'Invalid milestoneId format').optional(),
     assignTo: z.string().regex(objectIdRegex, 'Invalid assignTo format').optional(),
-    startDate: z.string().optional(),
-    targetDate: z.string().optional(),
-    endDate: z.string().optional(),
-    deliveredDate: z.string().optional(),
+    startDate: dateField,
+    targetDate: dateField,
+    endDate: dateField,
+    deliveredDate: dateField,
   }),
 });
 
@@ -26,10 +27,10 @@ export const updateTaskSchema = z.object({
     priority: z.enum(['Low', 'Medium', 'High', 'Critical']).optional(),
     milestoneId: z.string().regex(objectIdRegex, 'Invalid milestoneId format').optional(),
     assignTo: z.string().regex(objectIdRegex, 'Invalid assignTo format').optional(),
-    startDate: z.string().optional(),
-    targetDate: z.string().optional(),
-    endDate: z.string().optional(),
-    deliveredDate: z.string().optional(),
+    startDate: dateField,
+    targetDate: dateField,
+    endDate: dateField,
+    deliveredDate: dateField,
   }),
   params: z.object({
     id: z.string(),

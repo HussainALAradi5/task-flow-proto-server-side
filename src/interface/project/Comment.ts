@@ -3,6 +3,7 @@ import { IBaseEntity } from '../BaseModel';
 
 export interface IComment extends IBaseEntity {
   content: string;
+  attachment?: string;
   taskId: Schema.Types.ObjectId;
   isActive: boolean;
 }

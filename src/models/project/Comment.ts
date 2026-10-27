@@ -5,7 +5,8 @@ import { baseSchemaFields } from '../BaseModel';
 const commentSchema = new Schema<IComment>(
   {
     ...baseSchemaFields,
-    content: { type: String, required: true },
+    content: { type: String, default: '' },
+    attachment: { type: String, default: undefined },
     taskId: { type: Schema.Types.ObjectId, ref: 'Task', required: true },
     isActive: { type: Boolean, default: true },
   },

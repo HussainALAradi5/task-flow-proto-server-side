@@ -22,7 +22,7 @@ app.use(cors({
 }));
 
 // Body parsers
-app.use(express.json());
+app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 // Mount API Routes
