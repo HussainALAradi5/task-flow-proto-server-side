@@ -5,6 +5,7 @@ export interface IBaseEntity extends mongoose.Document {
   id: string;
   __v: number;
   code: string;
+  slug: string;
   createdBy?: Types.ObjectId;
   updatedBy?: Types.ObjectId;
   createdAt: Date;

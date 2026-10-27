@@ -16,7 +16,7 @@ test('task timeline rejects dates before creation and out of sequence', () => {
   assert.equal(createTaskSchema.safeParse({ body: { title: 'Card', projectId: '6a0000000000000000000001', startDate: 'yesterday' } }).success, false);
 });
 
-test('team invitation routes require login, role, and valid input', async () => {
+test('team invitation routes require login and valid input before owner lookup', async () => {
   const original = UserService.getById;
   let role = 'Member';
   UserService.getById = async () => ({ id: '6a0000000000000000000001', role, isActive: true }) as never;
@@ -28,7 +28,7 @@ test('team invitation routes require login, role, and valid input', async () => 
     const path = '/api/teams/6a0000000000000000000002/members';
     assert.equal((await fetch(base + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })).status, 401);
     const headers = { Authorization: `Bearer ${signToken('6a0000000000000000000001')}`, 'Content-Type': 'application/json' };
-    assert.equal((await fetch(base + path, { method: 'POST', headers, body: JSON.stringify({ email: 'bad' }) })).status, 403);
+    assert.equal((await fetch(base + path, { method: 'POST', headers, body: JSON.stringify({ email: 'bad' }) })).status, 400);
     role = 'Leader';
     assert.equal((await fetch(base + path, { method: 'POST', headers, body: JSON.stringify({ email: 'bad' }) })).status, 400);
     assert.equal((await fetch(base + '/api/teams/invitations/bad/respond', { method: 'POST', headers, body: JSON.stringify({ decision: 'accept' }) })).status, 400);

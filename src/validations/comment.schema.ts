@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-const attachment = z.string().max(750_000).refine((value) => {
+export const imageAttachmentSchema = z.string().max(750_000).refine((value) => {
   const match = /^data:image\/(png|jpeg|gif|webp);base64,([A-Za-z0-9+/]+={0,2})$/.exec(value);
   if (!match) return false;
   const bytes = Buffer.from(match[2], 'base64');
@@ -15,7 +15,7 @@ const attachment = z.string().max(750_000).refine((value) => {
 export const createCommentSchema = z.object({
   body: z.object({
     content: z.string().max(2000).default(''),
-    attachment: attachment.optional(),
+    attachment: imageAttachmentSchema.optional(),
     taskId: z.string(),
   }).refine((body) => body.content.trim().length > 0 || !!body.attachment, 'Write a comment or attach an image'),
 });

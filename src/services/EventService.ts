@@ -10,6 +10,7 @@ import { PaginatedResult } from '../interface/Pagination';
 import { QueryFilter } from 'mongoose';
 import { ITask } from '../interface/project/Task';
 import { IMilestone } from '../interface/project/Milestone';
+import { NotificationService } from './NotificationService';
 
 class EventServiceClass extends BaseService<IEvent> {
   constructor() {
@@ -31,7 +32,13 @@ class EventServiceClass extends BaseService<IEvent> {
       ...(userId ? { createdBy: toObjectId(userId) as unknown as IEvent['createdBy'] } : {}),
     };
 
-    return await this.create(eventData);
+    const event = await this.create(eventData);
+    try {
+      await NotificationService.activity(title, entityType, entityId, description, userId);
+    } catch (error) {
+      console.error('Could not create activity notifications', error);
+    }
+    return event;
   }
 
   async getProjectHistory(projectId: string, params: PaginationParams): Promise<PaginatedResult<IEvent>> {

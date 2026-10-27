@@ -6,7 +6,8 @@ import { catchAsync } from '../../utilities/catchAsync';
 import { canAccessOwnedRecord, canReadMemberRecord, buildMemberScopeFilter, parseParamId } from '../../utilities/helpers';
 import { Team } from '../../models/team/Team';
 import { getPaginationParams } from '../../utilities/pagination';
-import { QueryFilter } from 'mongoose';
+import { QueryFilter, Types } from 'mongoose';
+import { ProjectScope } from '../../enums/ProjectScope';
 
 class ProjectControllerClass extends BaseController<IProject> {
   constructor() {
@@ -17,19 +18,33 @@ class ProjectControllerClass extends BaseController<IProject> {
     let members: IProject['members'] = [];
     if (req.body.teamId) {
       const team = await Team.findById(req.body.teamId);
-      if (!canAccessOwnedRecord(req.user!, team)) {
+      if (!team?.isActive || (team.createdBy?.toString() !== req.user!.id && !team.members.some((member) => member.toString() === req.user!.id))) {
         res.status(404).json({ status: 'error', message: 'Team not found' });
         return;
       }
-      members = team!.members;
+      members = [...new Set([...team.members, team.createdBy].filter(Boolean).map((id) => id!.toString()))]
+        .filter((id) => id !== req.user!.id).map((id) => new Types.ObjectId(id)) as unknown as IProject['members'];
     }
     const project = await ProjectService.createProject({ ...req.body, members, createdBy: req.user!.id });
     res.status(201).json({ status: 'success', data: project });
   });
 
   override getAll = catchAsync(async (req: Request, res: Response): Promise<void> => {
+    const scope = typeof req.query.scope === 'string' ? req.query.scope : ProjectScope.All;
+    if (!Object.values(ProjectScope).includes(scope as ProjectScope)) {
+      res.status(400).json({ status: 'error', message: 'Invalid project scope' }); return;
+    }
+    const teamId = typeof req.query.teamId === 'string' ? req.query.teamId : undefined;
+    if (teamId && !Types.ObjectId.isValid(teamId)) {
+      res.status(400).json({ status: 'error', message: 'Invalid teamId' }); return;
+    }
+    const access = buildMemberScopeFilter(req.user!);
+    const filters: Record<string, unknown>[] = [access];
+    if (scope === ProjectScope.My) filters.push({ createdBy: new Types.ObjectId(req.user!.id) });
+    if (scope === ProjectScope.Team) filters.push({ teamId: { $ne: null } });
+    if (teamId) filters.push({ teamId: new Types.ObjectId(teamId) });
     const result = await ProjectService.getAllPaginated(
-      buildMemberScopeFilter(req.user!) as QueryFilter<IProject>,
+      { $and: filters } as unknown as QueryFilter<IProject>,
       getPaginationParams(req),
       typeof req.query.search === 'string' ? req.query.search : undefined,
       undefined,
@@ -40,12 +55,14 @@ class ProjectControllerClass extends BaseController<IProject> {
   });
 
   updateProject = catchAsync(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    if (req.body.teamId) {
-      const team = await Team.findById(req.body.teamId);
-      if (!canAccessOwnedRecord(req.user!, team)) {
+    if (req.body.teamId !== undefined) {
+      const team = req.body.teamId ? await Team.findById(req.body.teamId) : null;
+      if (req.body.teamId && (!team?.isActive || (team.createdBy?.toString() !== req.user!.id && !team.members.some((member) => member.toString() === req.user!.id)))) {
         res.status(404).json({ status: 'error', message: 'Team not found' });
         return;
       }
+      req.body.members = team ? [...new Set([...team.members, team.createdBy].filter(Boolean).map((id) => id!.toString()))]
+        .filter((id) => id !== req.user!.id).map((id) => new Types.ObjectId(id)) : [];
     }
     await this.update(req, res, next);
   });

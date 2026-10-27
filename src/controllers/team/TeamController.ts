@@ -3,7 +3,7 @@ import { ITeam } from '../../interface/team/Team';
 import { TeamService } from '../../services/team/TeamService';
 import { catchAsync } from '../../utilities/catchAsync';
 import { Request, Response } from 'express';
-import { buildMemberScopeFilter, canAccessOwnedRecord, parseParamId } from '../../utilities/helpers';
+import { buildMemberScopeFilter, parseParamId } from '../../utilities/helpers';
 import { getPaginationParams } from '../../utilities/pagination';
 import { QueryFilter } from 'mongoose';
 import { Team } from '../../models/team/Team';
@@ -13,6 +13,8 @@ import { IProject } from '../../interface/project/Project';
 import { EventService } from '../../services/EventService';
 import { EntityType } from '../../enums/EntityType';
 import { TeamInvitation } from '../../models/team/TeamInvitation';
+import { NotificationService } from '../../services/NotificationService';
+import { InvitationDecision } from '../../enums/InvitationDecision';
 
 class TeamControllerClass extends BaseController<ITeam> {
   constructor() {
@@ -22,6 +24,26 @@ class TeamControllerClass extends BaseController<ITeam> {
   createTeam = catchAsync(async (req: Request, res: Response): Promise<void> => {
     const team = await TeamService.create({ ...req.body, createdBy: req.user!.id });
     res.status(201).json({ status: 'success', data: team });
+  });
+
+  updateTeam = catchAsync(async (req: Request, res: Response): Promise<void> => {
+    const id = parseParamId(req, 'id');
+    const team = await Team.findById(id);
+    if (!team?.isActive || team.createdBy?.toString() !== req.user!.id) {
+      res.status(404).json({ status: 'error', message: 'Team not found' }); return;
+    }
+    const updated = await TeamService.update(id, req.body, req.user!.id);
+    res.status(200).json({ status: 'success', data: updated });
+  });
+
+  deleteTeam = catchAsync(async (req: Request, res: Response): Promise<void> => {
+    const id = parseParamId(req, 'id');
+    const team = await Team.findById(id);
+    if (!team?.isActive || team.createdBy?.toString() !== req.user!.id) {
+      res.status(404).json({ status: 'error', message: 'Team not found' }); return;
+    }
+    await TeamService.softDelete(id, req.user!.id);
+    res.status(200).json({ status: 'success', message: 'Team deactivated successfully' });
   });
 
   override getAll = catchAsync(async (req: Request, res: Response): Promise<void> => {
@@ -39,7 +61,7 @@ class TeamControllerClass extends BaseController<ITeam> {
   addMember = catchAsync(async (req: Request, res: Response): Promise<void> => {
     const id = parseParamId(req, 'id');
     const team = await Team.findById(id);
-    if (!team?.isActive || !canAccessOwnedRecord(req.user!, team)) {
+    if (!team?.isActive || team.createdBy?.toString() !== req.user!.id) {
       res.status(404).json({ status: 'error', message: 'Team not found' }); return;
     }
     const email = (req.body.email as string).trim().toLowerCase();
@@ -55,6 +77,8 @@ class TeamControllerClass extends BaseController<ITeam> {
     const existing = await TeamInvitation.findOne({ teamId: team._id, invitedUser: user._id, status: 'pending' });
     if (existing) { res.status(409).json({ status: 'error', message: 'An invitation is already pending' }); return; }
     await TeamInvitation.create({ teamId: team._id, invitedUser: user._id, invitedBy: req.user!.id, status: 'pending' });
+    try { await NotificationService.invitation(user.id, team.name); }
+    catch (error) { console.error('Could not create invitation notification', error); }
     await EventService.logEvent('Team invitation sent', EntityType.TEAM, id, `Invited ${user.userName}`, req.user!.id);
     res.status(202).json({ status: 'success', message: 'Invitation sent to their TaskFlow account' });
   });
@@ -71,7 +95,7 @@ class TeamControllerClass extends BaseController<ITeam> {
     if (!invitation) { res.status(404).json({ status: 'error', message: 'Invitation not found' }); return; }
     const team = await Team.findById(invitation.teamId);
     if (!team?.isActive) { res.status(404).json({ status: 'error', message: 'Team not found' }); return; }
-    const status = req.body.decision === 'accept' ? 'accepted' : 'declined';
+    const status = req.body.decision === InvitationDecision.Accept ? 'accepted' : 'declined';
     const changed = await TeamInvitation.findOneAndUpdate({ _id: invitationId, status: 'pending' }, { status }, { returnDocument: 'after' });
     if (!changed) { res.status(409).json({ status: 'error', message: 'Invitation already answered' }); return; }
     if (status === 'accepted') {
@@ -86,7 +110,7 @@ class TeamControllerClass extends BaseController<ITeam> {
     const id = parseParamId(req, 'id');
     const userId = parseParamId(req, 'userId');
     const team = await Team.findById(id);
-    if (!team?.isActive || !canAccessOwnedRecord(req.user!, team)) {
+    if (!team?.isActive || team.createdBy?.toString() !== req.user!.id) {
       res.status(404).json({ status: 'error', message: 'Team not found' }); return;
     }
     if (team.createdBy?.toString() === userId) {
@@ -97,7 +121,9 @@ class TeamControllerClass extends BaseController<ITeam> {
     }
     await Team.updateOne({ _id: id }, { $pull: { members: userId } });
     await Project.updateMany({ teamId: team._id, createdBy: { $ne: userId } } as unknown as QueryFilter<IProject>, { $pull: { members: userId } });
-    await EventService.logEvent('Team member removed', EntityType.TEAM, id, `Removed member ${userId}`, req.user!.id);
+    try { await NotificationService.memberRemoved(userId, team.name); }
+    catch (error) { console.error('Could not create removal notification', error); }
+    await EventService.logEvent('Team member removed', EntityType.TEAM, id, 'A member was removed', req.user!.id);
     res.status(200).json({ status: 'success', data: await Team.findById(id).populate('members', 'userName email') });
   });
 

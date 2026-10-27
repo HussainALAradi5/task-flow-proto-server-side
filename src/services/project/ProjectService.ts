@@ -8,11 +8,10 @@ import { PaginatedResult } from '../../interface/Pagination';
 import { PaginationParams } from '../../utilities/pagination';
 import { QueryFilter } from 'mongoose';
 
-const PROJECT_POPULATE = {
-  path: 'createdBy updatedBy members',
-  select: 'userName email',
-  model: 'User',
-};
+const PROJECT_POPULATE = [
+  { path: 'createdBy updatedBy members', select: 'userName email', model: 'User' },
+  { path: 'teamId', select: 'name', model: 'Team' },
+];
 
 class ProjectServiceClass extends BaseService<IProject> {
   constructor() {

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { InvitationDecision } from '../enums/InvitationDecision';
 
 export const createTeamSchema = z.object({
   body: z.object({
@@ -28,5 +29,5 @@ export const removeTeamMemberSchema = z.object({
 
 export const respondToInvitationSchema = z.object({
   params: z.object({ invitationId: z.string().regex(/^[a-f\d]{24}$/i) }),
-  body: z.object({ decision: z.enum(['accept', 'decline']) }),
+  body: z.object({ decision: z.enum(InvitationDecision) }),
 });

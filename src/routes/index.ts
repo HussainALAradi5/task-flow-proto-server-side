@@ -9,6 +9,7 @@ import milestoneRoutes from './project/milestoneRoutes';
 import taskRoutes from './project/taskRoutes';
 import commentRoutes from './project/commentRoutes';
 import teamRoutes from './team/teamRoutes';
+import notificationRoutes from './notificationRoutes';
 
 const router = Router();
 
@@ -24,6 +25,7 @@ router.use('/milestones', milestoneRoutes);
 router.use('/tasks', taskRoutes);
 router.use('/comments', commentRoutes);
 router.use('/teams', teamRoutes);
+router.use('/notifications', notificationRoutes);
 router.use('/events', eventRoutes);
 router.use('/media', mediaRoutes);
 
