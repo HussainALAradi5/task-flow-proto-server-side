@@ -19,7 +19,7 @@ class UserControllerClass extends BaseController<IUser> {
     if (existingUser) {
       res.status(409).json({
         status: 'error',
-        message: existingUser.email === email ? 'Email already in use' : 'Username already taken',
+        message: existingUser.email.toLowerCase() === email.trim().toLowerCase() ? 'Email already in use' : 'Username already taken',
       });
       return;
     }
@@ -60,7 +60,7 @@ class UserControllerClass extends BaseController<IUser> {
       if (existing && existing.id !== req.user!.id) {
         res.status(409).json({
           status: 'error',
-          message: existing.email === (email || req.user!.email)
+          message: existing.email.toLowerCase() === (email || req.user!.email).trim().toLowerCase()
             ? 'Email already in use'
             : 'Username already taken',
         });

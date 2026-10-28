@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { UserRole } from '../enums/user/UserRole';
 
 export const signupSchema = z.object({
   body: z.object({
@@ -11,7 +12,7 @@ export const signupSchema = z.object({
 
 export const loginSchema = z.object({
   body: z.object({
-    identifier: z.string().min(1, 'Email, username, or mobile is required'),
+    identifier: z.string().trim().min(1, 'Email, username, or mobile is required'),
     password: z.string().min(1, 'Password is required'),
   }),
 });
@@ -27,7 +28,7 @@ export const updateUserSchema = z.object({
 
 export const updateRoleSchema = z.object({
   body: z.object({
-    role: z.enum(['Admin', 'Leader', 'Member']),
+    role: z.enum(UserRole),
   }),
   params: z.object({
     id: z.string(),

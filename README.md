@@ -46,7 +46,7 @@ The script reads `MONGO_URI` from `.env`. All three new accounts use the passwor
 | `demo_leader` | `demo@taskflow.local` | Leader | Owns the sample team and boards |
 | `demo_member` | `demo-member@taskflow.local` | Member | Belongs to Operations Group and its Operations Board, owned by Admin |
 
-Enter either email or username in the client's login form. The Member can see and work on Operations Board, including an Admin-created card, but cannot see the Leader's Product Studio boards. The seed also adds three Product Studio boards, a milestone, four cards, a comment, and activity history for Website Refresh. Existing account passwords are preserved when the seed runs again.
+Enter the email in the client's login form; username and mobile number also work. Email matching ignores letter case and surrounding spaces. The Member can see and work on Operations Board, including an Admin-created card, but cannot see the Leader's Product Studio boards. The seed also adds three Product Studio boards, a milestone, four cards, a comment, and activity history for Website Refresh. Existing account passwords are preserved when the seed runs again. Team leader/member badges are based on the team creator and accepted membership, independently of the account's global Admin/Leader/Member role.
 
 ## Checks and production
 

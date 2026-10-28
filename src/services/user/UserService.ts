@@ -6,6 +6,9 @@ import { EntityType } from '../../enums/EntityType';
 import { UserRole } from '../../enums/user/UserRole';
 import bcrypt from 'bcrypt';
 
+const escapeRegExp = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const emailFilter = (email: string): RegExp => new RegExp(`^${escapeRegExp(email.trim())}$`, 'i');
+
 class UserServiceClass extends BaseService<IUser> {
   constructor() {
     super(User);
@@ -20,6 +23,7 @@ class UserServiceClass extends BaseService<IUser> {
 
     const userData: Partial<IUser> = {
       ...data,
+      ...(data.email ? { email: data.email.trim().toLowerCase() } : {}),
       password: hashedPassword,
       role: data.role || UserRole.MEMBER,
     };
@@ -30,7 +34,7 @@ class UserServiceClass extends BaseService<IUser> {
   }
 
   async update(id: string, data: Partial<IUser>): Promise<IUser | null> {
-    const updated = await super.update(id, data);
+    const updated = await super.update(id, { ...data, ...(data.email ? { email: data.email.trim().toLowerCase() } : {}) });
     if (updated) {
       await EventService.logEvent('User updated', EntityType.USER, id, 'User profile updated', id);
     }
@@ -38,9 +42,10 @@ class UserServiceClass extends BaseService<IUser> {
   }
 
   async authenticate(identifier: string, passwordPlain: string): Promise<IUser | null> {
+    const value = identifier.trim();
     const user = await this.model.findOne({
       isActive: { $ne: false },
-      $or: [{ email: identifier }, { userName: identifier }, { mobileNumber: identifier }],
+      $or: [{ email: emailFilter(value) }, { userName: value }, { mobileNumber: value }],
     }).select('+password').exec();
     if (!user || !user.password) return null;
 
@@ -49,7 +54,7 @@ class UserServiceClass extends BaseService<IUser> {
   }
 
   async findByEmailOrUsername(email: string, userName: string): Promise<IUser | null> {
-    return await this.model.findOne({ $or: [{ email }, { userName }] }).exec();
+    return await this.model.findOne({ $or: [{ email: emailFilter(email) }, { userName }] }).exec();
   }
 
   async assignRole(userId: string, role: UserRole): Promise<IUser | null> {

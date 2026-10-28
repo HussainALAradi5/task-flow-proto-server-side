@@ -3,11 +3,12 @@ import { Notification } from '../models/Notification';
 import { catchAsync } from '../utilities/catchAsync';
 import { getPaginationParams } from '../utilities/pagination';
 import { parseParamId } from '../utilities/helpers';
+import { QueryBoolean } from '../enums/QueryBoolean';
 
 export const NotificationController = {
   list: catchAsync(async (req: Request, res: Response): Promise<void> => {
     const page = getPaginationParams(req);
-    const filter = { recipient: req.user!.id, ...(req.query.unread === 'true' ? { readAt: null } : {}) };
+    const filter = { recipient: req.user!.id, ...(req.query.unread === QueryBoolean.True ? { readAt: null } : {}) };
     const [data, total, unreadCount] = await Promise.all([
       Notification.find(filter).sort({ createdAt: -1, _id: -1 }).skip(page.skip).limit(page.limit),
       Notification.countDocuments(filter),

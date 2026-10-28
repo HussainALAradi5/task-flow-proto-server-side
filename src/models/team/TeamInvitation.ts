@@ -1,21 +1,14 @@
-import { model, Schema, Types } from 'mongoose';
+import { model, Schema } from 'mongoose';
+import { ITeamInvitation } from '../../interface/team/TeamInvitation';
+import { InvitationStatus } from '../../enums/InvitationStatus';
 
-export interface TeamInvitationDocument {
-  teamId: Types.ObjectId;
-  invitedUser: Types.ObjectId;
-  invitedBy: Types.ObjectId;
-  status: 'pending' | 'accepted' | 'declined';
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-const schema = new Schema<TeamInvitationDocument>({
+const schema = new Schema<ITeamInvitation>({
   teamId: { type: Schema.Types.ObjectId, ref: 'Team', required: true },
   invitedUser: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   invitedBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  status: { type: String, enum: ['pending', 'accepted', 'declined'], default: 'pending' },
+  status: { type: String, enum: Object.values(InvitationStatus), default: InvitationStatus.Pending },
 }, { timestamps: true });
 
-schema.index({ teamId: 1, invitedUser: 1 }, { unique: true, partialFilterExpression: { status: 'pending' } });
+schema.index({ teamId: 1, invitedUser: 1 }, { unique: true, partialFilterExpression: { status: InvitationStatus.Pending } });
 
-export const TeamInvitation = model<TeamInvitationDocument>('TeamInvitation', schema);
+export const TeamInvitation = model<ITeamInvitation>('TeamInvitation', schema);
