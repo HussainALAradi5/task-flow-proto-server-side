@@ -6,6 +6,8 @@ const schema = new Schema<ITeamMessage>({
   author: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   content: { type: String, default: '' },
   attachment: { type: String, default: undefined },
+  attachmentName: { type: String, default: undefined },
+  mentions: [{ type: Schema.Types.ObjectId, ref: 'User' }],
 }, { timestamps: true });
 
 schema.index({ teamId: 1, createdAt: -1, _id: -1 });

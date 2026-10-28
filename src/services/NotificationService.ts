@@ -26,8 +26,14 @@ export const NotificationService = {
     await createMany([userId], NotificationKind.Activity, 'Team access removed', `Your access to ${teamName} and its boards was removed.`, '/teams');
   },
 
-  async teamMessage(teamId: string, teamName: string, owner: unknown, members: unknown[], actorId: string): Promise<void> {
-    await createMany(recipients(owner, members, actorId), NotificationKind.Message, 'New team message', `New message in ${teamName}.`, `/teams?chat=${teamId}`);
+  async teamMessage(teamId: string, teamName: string, owner: unknown, members: unknown[], actorId: string, mentionedIds: string[] = []): Promise<void> {
+    const allowedRecipients = recipients(owner, members, actorId);
+    const mentioned = allowedRecipients.filter((id) => mentionedIds.includes(id));
+    const others = allowedRecipients.filter((id) => !mentioned.includes(id));
+    await Promise.all([
+      createMany(mentioned, NotificationKind.Message, 'You were mentioned', `You were mentioned in ${teamName}.`, `/teams?chat=${teamId}`),
+      createMany(others, NotificationKind.Message, 'New team message', `New message in ${teamName}.`, `/teams?chat=${teamId}`),
+    ]);
   },
 
   async activity(title: string, entityType: EntityType, entityId: string, description: string, actorId?: string): Promise<void> {

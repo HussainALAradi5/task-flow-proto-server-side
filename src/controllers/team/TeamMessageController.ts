@@ -5,6 +5,8 @@ import { catchAsync } from '../../utilities/catchAsync';
 import { getPaginationParams } from '../../utilities/pagination';
 import { parseParamId } from '../../utilities/helpers';
 import { NotificationService } from '../../services/NotificationService';
+import { User } from '../../models/user/User';
+import { teamMentionError } from '../../utilities/teamMentions';
 
 async function accessibleTeam(req: Request) {
   const team = await Team.findById(parseParamId(req, 'id'));
@@ -29,9 +31,15 @@ export const TeamMessageController = {
   create: catchAsync(async (req: Request, res: Response): Promise<void> => {
     const team = await accessibleTeam(req);
     if (!team) { res.status(404).json({ status: 'error', message: 'Team not found' }); return; }
-    const message = await TeamMessage.create({ teamId: team._id, author: req.user!.id, content: req.body.content.trim(), attachment: req.body.attachment });
+    const content = req.body.content.trim() as string;
+    const mentionIds = [...new Set(req.body.mentions as string[])];
+    const allowedIds = new Set([String(team.createdBy), ...team.members.map(String)]);
+    const mentionedUsers = await User.find({ _id: { $in: mentionIds }, isActive: true }).select('userName').lean();
+    const mentionError = teamMentionError(content, mentionIds, allowedIds, mentionedUsers.map((user) => ({ id: String(user._id), userName: user.userName })));
+    if (mentionError) { res.status(400).json({ status: 'error', message: mentionError }); return; }
+    const message = await TeamMessage.create({ teamId: team._id, author: req.user!.id, content, attachment: req.body.attachment, attachmentName: req.body.attachmentName, mentions: mentionIds });
     await message.populate('author', 'userName');
-    try { await NotificationService.teamMessage(team.id, team.name, team.createdBy, team.members, req.user!.id); }
+    try { await NotificationService.teamMessage(team.id, team.name, team.createdBy, team.members, req.user!.id, mentionIds); }
     catch (error) { console.error('Could not create message notifications', error); }
     res.status(201).json({ status: 'success', data: message });
   }),

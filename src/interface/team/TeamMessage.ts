@@ -5,6 +5,8 @@ export interface ITeamMessage {
   author: Types.ObjectId;
   content: string;
   attachment?: string;
+  attachmentName?: string;
+  mentions: Types.ObjectId[];
   createdAt: Date;
   updatedAt: Date;
 }

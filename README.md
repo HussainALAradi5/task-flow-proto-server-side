@@ -1,6 +1,6 @@
 # TaskFlow API
 
-Express and MongoDB API for the [TaskFlow client](https://github.com/HussainALAradi5/task-flow-proto-client-side). Projects act as boards, tasks act as cards, and task status determines the Kanban column. Project activity is recorded as an ordered history. Team invitations require recipient acceptance before access is granted. Accepted members can use team chat, and each account has a private read/unread notification inbox.
+Express and MongoDB API for the [TaskFlow client](https://github.com/HussainALAradi5/task-flow-proto-client-side). Projects act as boards, tasks act as cards, and task status determines the Kanban column. Project activity is recorded as an ordered history. Team invitations require recipient acceptance before access is granted. Accepted members can use team chat with small verified attachments and team-validated mentions, and each account has a private read/unread notification inbox. Chat files stay in MongoDB for this prototype; no external CDN credentials are required.
 
 ## Live demo
 
